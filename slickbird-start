@@ -9,6 +9,13 @@ import tornado.ioloop
 import slickbird
 
 
+def _log():
+    if not _log.logger:
+        _log.logger = logging.getLogger(__name__)
+    return _log.logger
+_log.logger = None
+
+
 def _logging_verbose(option, opt, value, parser):
     logging.getLogger().setLevel(logging.INFO)
 
@@ -25,6 +32,7 @@ def main():
         parser.error('Invalid arguments.')
     app = slickbird.make_app()
     app.listen(8888)
+    _log().info('slickbird started')
     tornado.ioloop.IOLoop.current().start()
 
 

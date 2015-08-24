@@ -6,9 +6,9 @@
 
 <table class="table">
     <tr><th>Collection</th></tr>
-    {% for cn,c in collection.items() %}
+    {% for c in collections %}
     <tr>
-        <td><a href="collection/{{cn}}/">{{ cn }}</a></td>
+        <td><a href="collection/{{c.name}}/">{{ c.name }}</a></td>
     </tr>
     {% end %}
 </table>
