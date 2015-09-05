@@ -37,12 +37,14 @@ class AddHandler(BaseHandler):
     def post(self):
         name = self.get_argument('name')
         filename = self.request.files['datfile'][0]['filename']
+        collection = datparse.parse(
+            datstr=self.request.files['datfile'][0]['body'])
+        if name == '':
+            name = collection['header']['name']
         cdb = orm.Collection(name=name, filename=filename)
         self.session.add(cdb)
         self.session.commit()
-        games = datparse.parse(
-            datstr=self.request.files['datfile'][0]['body'])
-        for gn, roms in games.items():
+        for gn, roms in collection['games'].items():
             gdb = orm.Game(collection=cdb, name=gn)
             for rom in roms:
                 r = rom['rom']

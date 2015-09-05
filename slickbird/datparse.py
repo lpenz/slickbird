@@ -25,10 +25,10 @@ def parse(fd=None, filename=None, datstr=None):
             fd = StringIO(datstr)
     assert fd
     et = etree.parse(fd)
-    d = {}
+    games = {}
     for e in et.iterfind('/game'):
         name = nameclean(e.attrib.get('cloneof', e.attrib['name']))
-        d.setdefault(name, [])
+        games.setdefault(name, [])
         n = {
             'name': e.attrib.get('cloneof', e.attrib['name']),
             'description': e.find('description').text,
@@ -37,5 +37,8 @@ def parse(fd=None, filename=None, datstr=None):
         }
         if 'cloneof' in e.attrib:
             n['cloneof'] = e.attrib['cloneof']
-        d[name].append(n)
-    return OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+        games[name].append(n)
+    return {
+            'header': dict(((e.tag, e.text) for e in et.find('/header').iter())),
+            'games': OrderedDict(sorted(games.items(), key=lambda t: t[0])),
+            }
