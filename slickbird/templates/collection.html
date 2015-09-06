@@ -1,0 +1,24 @@
+{% extends _base.html %}
+
+{% block title %}{{collectionname}}{% end %}
+
+{% block contents %}
+
+<table class="table">
+    <tr><th>Game</th><th>Filename</th><th>ROM</th></tr>
+    {% for gn,g in games.items() %}
+    {% set first = True %}
+    {% for e in g %}
+    <tr>
+        {% if first %}
+        <td rowspan="{{length(g)}}">{{gn}}</td>
+        {% set first = False %}
+        {% end %}
+        <td>{{ e['rom']['name'] }}</td>
+        <td>{{ e['rom'] }}</td>
+    </tr>
+    {% end %}
+    {% end %}
+</table>
+
+{% end %}

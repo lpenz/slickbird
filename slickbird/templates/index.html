@@ -1,0 +1,16 @@
+{% extends _base.html %}
+
+{% block title %}Slickbird{% end %}
+
+{% block contents %}
+
+<table class="table">
+    <tr><th>Collection</th></tr>
+    {% for cn,c in collection.items() %}
+    <tr>
+        <td><a href="collection/{{cn}}/">{{ cn }}</a></td>
+    </tr>
+    {% end %}
+</table>
+
+{% end %}

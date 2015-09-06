@@ -1,0 +1,26 @@
+{% extends _base.html %}
+
+{% block title %}Slickbird{% end %}
+
+{% block contents %}
+
+<div class="panel panel-default">
+    <div class="panel-heading">Add new collection</div>
+    <div class="panel-body">
+        <form enctype="multipart/form-data" method="post">
+            <div class="form-group">
+                <label for="newcollectionName">Name</label>
+                <input type="text" class="form-control" id="newcollectionName" name="newcollectionName" placeholder="Sega Master System">
+            </div>
+            <div class="form-group">
+                <label for="newcollectionDat">Dat file</label>
+                <input type="file" id="newcollectionDat" name="newcollectionDat">
+                <p class="help-block">Dat-file from no-intro.</p>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+            {% raw xsrf_form_html() %}
+        </form>
+    </div>
+</div>
+
+{% end %}
