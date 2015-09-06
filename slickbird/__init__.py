@@ -5,6 +5,7 @@ import logging
 
 import tornado.ioloop
 import tornado.web
+from tornado.web import URLSpec
 
 import ui_methods
 from slickbird import datparse
@@ -22,9 +23,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def initialize(self, session):
         self.session = session
-        self.top = 'http://localhost:8888'
         self.kwpars = {
-            'TOP': self.top,
             'MENU': ['collections', 'add'],
         }
 
@@ -53,7 +52,7 @@ class AddHandler(BaseHandler):
                 self.session.add(rdb)
             self.session.add(gdb)
         self.session.commit()
-        self.redirect(self.top + '/collection/' + name)
+        self.redirect(self.reverse_url('collection', name))
 
 
 class CollectionsHandler(BaseHandler):
@@ -84,7 +83,7 @@ class CollectionHandler(BaseHandler):
 class MainHandler(BaseHandler):
 
     def get(self):
-        self.redirect(self.top + '/collection')
+        self.redirect(self.reverse_url('collections'))
 
 
 class Application(tornado.web.Application):
@@ -93,17 +92,18 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, *args, **kwargs)
 
 
-def make_app():
-    d = dict(session=orm.Session())
+def make_app(xsrf_cookies=False):
+    d = dict(session=orm.make_session()())
     return Application([
-        (r'/', MainHandler, d),
-        (r'/add', AddHandler, d),
-        (r'/collection/?', CollectionsHandler, d),
-        (r'/collection/(?P<collectionname>[^/]+)/?', CollectionHandler, d),
+        URLSpec(r'/', MainHandler, d, name='top'),
+        URLSpec(r'/add', AddHandler, d, name='add'),
+        URLSpec(r'/collection/?', CollectionsHandler, d, name='collections'),
+        URLSpec(r'/collection/(?P<collectionname>[^/]+)/?',
+                CollectionHandler, d, name='collection'),
     ],
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
-        xsrf_cookies=True,
+        xsrf_cookies=xsrf_cookies,
         ui_methods=ui_methods,
         debug=True,
     )
