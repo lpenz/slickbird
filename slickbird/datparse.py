@@ -1,6 +1,6 @@
 import re
 
-from StringIO import StringIO
+import io
 
 from lxml import etree
 
@@ -20,9 +20,9 @@ def nameclean(name0):
 def parse(fd=None, filename=None, datstr=None):
     if fd is None:
         if filename is not None:
-            fd = open(filename)
+            fd = io.open(filename, encoding='utf-8')
         if datstr is not None:
-            fd = StringIO(datstr)
+            fd = io.StringIO(datstr)
     assert fd
     et = etree.parse(fd)
     games = {}
@@ -39,6 +39,6 @@ def parse(fd=None, filename=None, datstr=None):
             n['cloneof'] = e.attrib['cloneof']
         games[name].append(n)
     return {
-            'header': dict(((e.tag, e.text) for e in et.find('/header').iter())),
-            'games': OrderedDict(sorted(games.items(), key=lambda t: t[0])),
-            }
+        'header': dict(((e.tag, e.text) for e in et.find('/header').iter())),
+        'games': OrderedDict(sorted(games.items(), key=lambda t: t[0])),
+    }

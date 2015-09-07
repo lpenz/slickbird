@@ -7,9 +7,10 @@ import tornado.ioloop
 import tornado.web
 from tornado.web import URLSpec
 
-import ui_methods
 from slickbird import datparse
 import slickbird.orm as orm
+
+from . import ui_methods
 
 
 def _log():
@@ -37,7 +38,7 @@ class AddHandler(BaseHandler):
         name = self.get_argument('name')
         filename = self.request.files['datfile'][0]['filename']
         collection = datparse.parse(
-            datstr=self.request.files['datfile'][0]['body'])
+            datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
         if name == '':
             name = collection['header']['name']
         cdb = orm.Collection(name=name, filename=filename)

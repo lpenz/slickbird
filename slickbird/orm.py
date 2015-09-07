@@ -53,6 +53,7 @@ class Rom(Base):
 
 from sqlalchemy.orm import sessionmaker
 
+
 def make_session():
     engine = sqla.create_engine('sqlite:///db', echo=False)
     Base.metadata.create_all(engine)

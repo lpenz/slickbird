@@ -31,6 +31,9 @@ class TestAdd(AsyncHTTPTestCase):
 
     @gen_test(timeout=90)
     def test_add(self):
-        response = yield self.collectionadd('Game Boy', 'Nintendo - Game Boy Advance Parent-Clone (20150801-084652).dat')
+        filename = \
+            'Nintendo - Game Boy Advance Parent-Clone (20150801-084652).dat'
+        response = yield self.collectionadd(
+            'Game Boy',
+            os.path.join(APP_ROOT, 'tests', filename))
         self.assertEqual(response.status_code, 200)
-
