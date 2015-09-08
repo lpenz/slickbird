@@ -4,13 +4,49 @@
 
 {% block contents %}
 
-<table class="table">
-    <tr><th>Collection</th></tr>
-    {% for c in collections %}
-    <tr>
-        <td><a href="collection/{{c.name}}/">{{ c.name }}</a></td>
-    </tr>
-    {% end %}
-</table>
+<div id="collections"></div>
+
+<script type="text/jsx">
+
+var CollectionTable = React.createClass({
+    getInitialState: function() {
+        return {data: []};
+    },
+    componentDidMount: function() {
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function() {
+        var collectionRows = this.state.data.map(function (c) {
+            return (
+                <tr key={c.name}><td><a href={c.name}>{c.name}</a></td></tr>
+            );
+        });
+        return (
+            <table className="table">
+                <tbody>
+                    <tr><th>Collection</th></tr>
+                    {collectionRows}
+                </tbody>
+            </table>
+        );
+    }
+});
+
+React.render(
+  <CollectionTable url="{{ reverse_url("api_collections") }}" />,
+  document.getElementById('collections')
+);
+</script>
+
 
 {% end %}

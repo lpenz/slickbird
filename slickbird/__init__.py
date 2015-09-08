@@ -2,6 +2,7 @@
 
 import os
 import logging
+import json
 
 import tornado.ioloop
 import tornado.web
@@ -21,22 +22,38 @@ def _log():
 _log.logger = None
 
 
+# Command-line arguments: ####################################################
+
 define('port', default=8888, help='Port to bind to')
 
 
+# Base class for handlers: ###################################################
+
 class BaseHandler(tornado.web.RequestHandler):
 
-    def initialize(self, session):
+    def initialize(self, session, name):
+        self.name = name
         self.session = session
         self.kwpars = {
             'MENU': ['collections', 'add'],
         }
 
 
-class AddHandler(BaseHandler):
+# Pages: #####################################################################
+
+class PageHandler(BaseHandler):
 
     def get(self):
-        self.render('add.html', CURMENU='add', **self.kwpars)
+        self.render(self.name + '.html', CURMENU=self.name, **self.kwpars)
+
+
+class TopHandler(BaseHandler):
+
+    def get(self):
+        self.redirect(self.reverse_url('collections'))
+
+
+class AddHandler(PageHandler):
 
     def post(self):
         name = self.get_argument('name')
@@ -60,36 +77,35 @@ class AddHandler(BaseHandler):
         self.redirect(self.reverse_url('collection', name))
 
 
-class CollectionsHandler(BaseHandler):
-
-    def get(self):
-        self.render('collections.html',
-                    collections=self.session.query(orm.Collection),
-                    CURMENU='collections',
-                    **self.kwpars
-                    )
-
-
-class CollectionHandler(BaseHandler):
+class CollectionHandler(PageHandler):
 
     def get(self, collectionname):
-        games = {}
-        for g in self.session.query(orm.Game).\
-                filter(orm.Collection.name == collectionname):
-            games[g.name] = True
         self.render('collection.html',
                     collectionname=collectionname,
-                    games=games,
                     CURMENU='collections',
                     **self.kwpars
                     )
 
 
-class MainHandler(BaseHandler):
+# API: #######################################################################
+
+class CollectionsDataHandler(BaseHandler):
 
     def get(self):
-        self.redirect(self.reverse_url('collections'))
+        self.write(json.dumps([c.as_dict()
+                   for c in self.session.query(orm.Collection)]))
 
+
+class CollectionDataHandler(BaseHandler):
+
+    def get(self, collectionname):
+        games = [g.as_dict()
+                 for g in self.session.query(orm.Game)
+                 .filter(orm.Collection.name == collectionname)]
+        self.write(json.dumps(games))
+
+
+# Application: ###############################################################
 
 class Application(tornado.web.Application):
 
@@ -98,13 +114,29 @@ class Application(tornado.web.Application):
 
 
 def make_app(xsrf_cookies=False):
-    d = dict(session=orm.make_session()())
+    d0 = dict(session=orm.make_session()())
+    d = lambda n: dict(d0, name=n)
     return Application([
-        URLSpec(r'/', MainHandler, d, name='top'),
-        URLSpec(r'/add', AddHandler, d, name='add'),
-        URLSpec(r'/collection/?', CollectionsHandler, d, name='collections'),
+        URLSpec(r'/',
+                TopHandler,
+                d(''), name='top'),
+        URLSpec(r'/add/?', AddHandler,
+                d('add'), name='add'),
+        URLSpec(r'/collection/?',
+                PageHandler,
+                d('collections'), name='collections'),
         URLSpec(r'/collection/(?P<collectionname>[^/]+)/?',
-                CollectionHandler, d, name='collection'),
+                CollectionHandler,
+                d('collection'), name='collection'),
+
+        URLSpec(r'/api/collections.json',
+                CollectionsDataHandler,
+                d('collections'),
+                name='api_collections'),
+        URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
+                CollectionDataHandler,
+                d('collection'),
+                name='api_collection'),
     ],
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),

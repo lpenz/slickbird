@@ -4,13 +4,48 @@
 
 {% block contents %}
 
-<table class="table">
-    <tr><th>Game</th></tr>
-    {% for gn,g in games.items() %}
-    <tr>
-        <td>{{ gn }}</td>
-    </tr>
-    {% end %}
-</table>
+<div id="games"></div>
+
+<script type="text/jsx">
+
+var GameTable = React.createClass({
+    getInitialState: function() {
+        return {data: []};
+    },
+    componentDidMount: function() {
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function() {
+        var gameRows = this.state.data.map(function (g) {
+            return (
+                <tr key={g.name}><td>{g.name}</td></tr>
+            );
+        });
+        return (
+            <table className="table">
+                <tbody>
+                    <tr><th>Game</th></tr>
+                    {gameRows}
+                </tbody>
+            </table>
+        );
+    }
+});
+
+React.render(
+  <GameTable url="{{ reverse_url("api_collection", collectionname) }}" />,
+  document.getElementById('games')
+);
+</script>
 
 {% end %}

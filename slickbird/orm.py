@@ -7,7 +7,13 @@ from sqlalchemy.orm import relationship, backref
 Base = declarative_base()
 
 
-class Collection(Base):
+class AsDict(object):
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
+class Collection(Base, AsDict):
     __tablename__ = 'collection'
     id = sqla.Column(
         sqla.Integer, sqla.Sequence('collection_id_seq'), primary_key=True)
@@ -19,7 +25,7 @@ class Collection(Base):
             self.name)
 
 
-class Game(Base):
+class Game(Base, AsDict):
     __tablename__ = 'game'
     id = sqla.Column(sqla.Integer, primary_key=True)
     collection_id = sqla.Column(
