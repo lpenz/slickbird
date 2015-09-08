@@ -1,3 +1,5 @@
+'''.dat XML from NO-INTRO parser'''
+
 import re
 
 import io
