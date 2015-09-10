@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
-from tornado.options import parse_command_line
+import os
+from tornado.options import parse_command_line, parse_config_file, options
 
 import slickbird
 
 
 def main():
+    defcfg = 'slickbird.cfg'
     parse_command_line()
+    if options.config:
+        parse_config_file(options.config)
+    elif os.path.exists(defcfg):
+        parse_config_file(defcfg)
+    parse_command_line()  # override config file
     slickbird.start()
 
 

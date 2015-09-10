@@ -25,6 +25,7 @@ _log.logger = None
 
 # Command-line arguments: ####################################################
 
+define('config', default=None, help='Configuration file')
 define('port', default=8888, help='Port to bind to')
 
 
