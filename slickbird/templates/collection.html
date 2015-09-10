@@ -10,7 +10,7 @@
 
 var GameTable = React.createClass({
     getInitialState: function() {
-        return {data: []};
+        return {data: {games: []}};
     },
     componentDidMount: function() {
         $.ajax({
@@ -26,7 +26,7 @@ var GameTable = React.createClass({
         });
     },
     render: function() {
-        var gameRows = this.state.data.map(function (g) {
+        var gameRows = this.state.data.games.map(function (g) {
             return (
                 <tr key={g.name}><td>{g.name}</td></tr>
             );
