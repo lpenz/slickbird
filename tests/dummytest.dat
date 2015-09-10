@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE datafile PUBLIC "-//Logiqx//DTD ROM Management Datafile//EN" "http://www.logiqx.com/Dats/datafile.dtd">
+<datafile>
+	<header>
+		<name>Dummy test file</name>
+		<description>Dummy test file</description>
+		<version></version>
+		<date>20150801-084652</date>
+		<author>lpenz</author>
+        <url>github.com/lpenz/slickbird</url>
+	</header>
+	<game name="Dummy game 1">
+		<description>Dummy game 1</description>
+		<release name="Dummy game 1" region="EUR"/>
+		<rom name="emptyfile.txt" size="0" crc="00000000" md5="D41D8CD98F00B204E9800998ECF8427E" sha1="DA39A3EE5E6B4B0D3255BFEF95601890AFD80709" status="verified"/>
+	</game>
+</datafile>

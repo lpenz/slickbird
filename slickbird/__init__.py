@@ -139,7 +139,7 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, *args, **kwargs)
 
 
-def make_app(xsrf_cookies=False, database='sqlite:///db'):
+def make_app(xsrf_cookies=False, database='sqlite:///db', autoreload=True):
     d0 = dict(session=orm.make_session(database=database)())
     d = lambda n: dict(d0, name=n)
     return Application([
@@ -169,6 +169,7 @@ def make_app(xsrf_cookies=False, database='sqlite:///db'):
         xsrf_cookies=xsrf_cookies,
         ui_methods=ui_methods,
         debug=True,
+        autoreload=autoreload,
     )
 
 
