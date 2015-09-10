@@ -19,6 +19,7 @@ class Collection(Base, AsDict):
         sqla.Integer, sqla.Sequence('collection_id_seq'), primary_key=True)
     name = sqla.Column(sqla.String(50))
     filename = sqla.Column(sqla.String(50))
+    status = sqla.Column(sqla.String(50))
 
     def __repr__(self):
         return "<Collection(name='%s')>" % (
@@ -31,7 +32,7 @@ class Game(Base, AsDict):
     collection_id = sqla.Column(
         sqla.Integer, sqla.ForeignKey('collection.id'))
     collection = relationship(
-        'Collection', backref=backref('game', order_by=id))
+        'Collection', backref=backref('games', order_by=id))
     name = sqla.Column(sqla.String(50))
 
     def __repr__(self):
@@ -44,7 +45,7 @@ class Rom(Base):
     game_id = sqla.Column(
         sqla.Integer, sqla.ForeignKey('game.id'))
     game = relationship(
-        'Game', backref=backref('game', order_by=id))
+        'Game', backref=backref('roms', order_by=id))
     filename = sqla.Column(sqla.String(80))
     size = sqla.Column(sqla.Integer)
     crc = sqla.Column(sqla.String(8))
@@ -60,8 +61,8 @@ class Rom(Base):
 from sqlalchemy.orm import sessionmaker
 
 
-def make_session():
-    engine = sqla.create_engine('sqlite:///db', echo=False)
+def make_session(database):
+    engine = sqla.create_engine(database, echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     return Session

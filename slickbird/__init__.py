@@ -4,6 +4,7 @@ import os
 import logging
 import json
 
+import tornado.gen
 import tornado.ioloop
 import tornado.web
 from tornado.web import URLSpec
@@ -55,16 +56,8 @@ class TopHandler(BaseHandler):
 
 class AddHandler(PageHandler):
 
-    def post(self):
-        name = self.get_argument('name')
-        filename = self.request.files['datfile'][0]['filename']
-        collection = datparse.parse(
-            datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
-        if name == '':
-            name = collection['header']['name']
-        cdb = orm.Collection(name=name, filename=filename)
-        self.session.add(cdb)
-        self.session.commit()
+    @tornado.gen.coroutine
+    def collectionadd(self, cdb, collection):
         for gn, roms in collection['games'].items():
             gdb = orm.Game(collection=cdb, name=gn)
             for rom in roms:
@@ -73,8 +66,24 @@ class AddHandler(PageHandler):
                 rdb = orm.Rom(game=gdb, **r)
                 self.session.add(rdb)
             self.session.add(gdb)
+            yield tornado.gen.moment
+        cdb.status = 'ready'
+        self.session.commit()
+
+    @tornado.gen.coroutine
+    def post(self):
+        name = self.get_argument('name')
+        filename = self.request.files['datfile'][0]['filename']
+        collection = datparse.parse(
+            datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
+        if name == '':
+            name = collection['header']['name']
+        cdb = orm.Collection(name=name, filename=filename, status='loading')
+        self.session.add(cdb, collection)
         self.session.commit()
         self.redirect(self.reverse_url('collection', name))
+        tornado.ioloop.IOLoop.current() \
+            .spawn_callback(self.collectionadd, cdb, collection)
 
 
 class CollectionHandler(PageHandler):
@@ -99,10 +108,16 @@ class CollectionsDataHandler(BaseHandler):
 class CollectionDataHandler(BaseHandler):
 
     def get(self, collectionname):
-        games = [g.as_dict()
-                 for g in self.session.query(orm.Game)
-                 .filter(orm.Collection.name == collectionname)]
-        self.write(json.dumps(games))
+        cdb = self.session.query(orm.Collection)\
+            .filter(orm.Collection.name == collectionname)\
+            .first()
+        games = []
+        if cdb:
+            games = [g.as_dict() for g in cdb.games]
+        self.write(json.dumps({
+            'collection': cdb.as_dict(),
+            'games': games,
+        }))
 
 
 # Application: ###############################################################
@@ -113,8 +128,8 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, *args, **kwargs)
 
 
-def make_app(xsrf_cookies=False):
-    d0 = dict(session=orm.make_session()())
+def make_app(xsrf_cookies=False, database='sqlite:///db'):
+    d0 = dict(session=orm.make_session(database=database)())
     d = lambda n: dict(d0, name=n)
     return Application([
         URLSpec(r'/',
