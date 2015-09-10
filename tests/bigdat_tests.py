@@ -1,4 +1,4 @@
-'''Test for adding a collection'''
+'''Tests using a real, big dat file'''
 
 import sys
 import os
@@ -24,7 +24,7 @@ def _log():
 _log.logger = None
 
 
-class TestAdd(AsyncHTTPTestCase):
+class TestBigDatAdd(AsyncHTTPTestCase):
     executor = ThreadPoolExecutor(max_workers=1)
 
     def setUp(self):
@@ -45,7 +45,7 @@ class TestAdd(AsyncHTTPTestCase):
         return requests.post(self.get_url('/add'), data=data, files=files)
 
     @gen_test(timeout=300)
-    def test_add(self):
+    def test_bigdatadd(self):
         filename = \
             'Nintendo - Game Boy Advance Parent-Clone (20150801-084652).dat'
         addresp = yield self.collectionadd(

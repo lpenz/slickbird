@@ -1,1 +1,1 @@
-from .add_tests import *  # NOQA
+from .bigdat_tests import *  # NOQA
