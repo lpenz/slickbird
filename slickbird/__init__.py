@@ -81,7 +81,13 @@ class AddHandler(PageHandler):
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
         if name == '':
             name = collection['header']['name']
-        cdb = orm.Collection(name=name, filename=filename, status='loading')
+        cdb = self.session.query(orm.Collection)\
+            .filter(orm.Collection.name == name)\
+            .first()
+        if cdb:
+            self.session.delete(cdb)
+        cdb = orm.Collection(
+            name=name, filename=filename, status='loading')
         self.session.add(cdb, collection)
         self.session.commit()
         self.redirect(self.reverse_url('collection', name))
