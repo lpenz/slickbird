@@ -66,6 +66,8 @@ class AddHandler(PageHandler):
                 r['filename'] = r.pop('name')
                 rdb = orm.Rom(game=gdb, **r)
                 self.session.add(rdb)
+            _log().debug('add collection {} game {}'
+                         .format(cdb.name, gn))
             self.session.add(gdb)
             yield tornado.gen.moment
         cdb.status = 'ready'
@@ -115,6 +117,8 @@ class CollectionDataHandler(BaseHandler):
         games = []
         if cdb:
             games = [g.as_dict() for g in cdb.games]
+        _log().debug('returning {} with {} games'
+                     .format(collectionname, len(games)))
         self.write(json.dumps({
             'collection': cdb.as_dict(),
             'games': games,
