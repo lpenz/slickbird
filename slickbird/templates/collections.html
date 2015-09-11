@@ -28,13 +28,16 @@ var CollectionTable = React.createClass({
     render: function() {
         var collectionRows = this.state.data.map(function (c) {
             return (
-                <tr key={c.name}><td><a href={c.name}>{c.name}</a></td></tr>
+                <tr key={c.name}>
+                    <td><a href={c.name}>{c.name}</a></td>
+                    <td>{c.status}</td>
+                </tr>
             );
         });
         return (
             <table className="table">
                 <tbody>
-                    <tr><th>Collection</th></tr>
+                    <tr><th>Collection</th><th>Status</th></tr>
                     {collectionRows}
                 </tbody>
             </table>

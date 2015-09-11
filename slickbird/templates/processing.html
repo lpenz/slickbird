@@ -9,8 +9,8 @@
     <div class="panel-body">
         <form method="post">
             <div class="form-group">
-                <label for="name">Filename</label>
-                <input type="text" class="form-control" id="filename" name="filename" placeholder="/">
+                <label for="name">Directory</label>
+                <input type="text" class="form-control" id="directory" name="directory" placeholder="/">
             </div>
             <button type="submit" class="btn btn-default">Submit</button>
             {% raw xsrf_form_html() %}
@@ -46,13 +46,13 @@ var FileprocessingTable = React.createClass({
     render: function() {
         var fileprocessingRows = this.state.data.map(function (c) {
             return (
-                <tr key={c.name}><td>{c.name}</td></tr>
+                <tr key={c.filename}><td>{c.filename}</td><td>{c.status}</td></tr>
             );
         });
         return (
             <table className="table">
                 <tbody>
-                    <tr><th>File</th></tr>
+                    <tr><th>File</th><th>Status</th></tr>
                     {fileprocessingRows}
                 </tbody>
             </table>
