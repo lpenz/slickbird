@@ -5,7 +5,7 @@ python:
   - pypy
 before_install:
   # static checkers:
-  - pip install flake8 py3kwarn
+  - pip install flake8
   # coveralls:
   - pip install coveralls
 script:
@@ -20,6 +20,5 @@ script:
   - if test -s "$TMP"; then false; else true; fi
   # static checkers:
   - flake8 .
-  - if [ "$TRAVIS_PYTHON_VERSION" = "2.7" ]; then py3kwarn .; fi
 after_success:
   - coveralls
