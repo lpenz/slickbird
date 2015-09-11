@@ -115,4 +115,6 @@ class TestSlickbird(AsyncHTTPTestCase):
             fps = fp[0]['status']
         self.assertEqual(fps, 'moved')
         self.assertTrue(
-            os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
+            os.path.exists(pjoin(self.deploydir,
+                                 'dummy',
+                                 'emptyfile.txt')))

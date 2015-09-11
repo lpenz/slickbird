@@ -5,7 +5,7 @@ import logging
 import json
 import hashlib
 import shutil
-
+import errno
 import tornado.gen
 import tornado.ioloop
 import tornado.web
@@ -16,6 +16,8 @@ from slickbird import datparse
 import slickbird.orm as orm
 
 from . import ui_methods
+
+pjoin = os.path.join
 
 
 def _log():
@@ -31,7 +33,19 @@ define('config', default=None, help='Configuration file')
 define('port', default=8888, help='Port to bind to')
 
 
+# Utility functions: #########################################################
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
 # Base class for handlers: ###################################################
+
 
 class BaseHandler(tornado.web.RequestHandler):
 
@@ -134,7 +148,10 @@ class ProcessingHandler(PageHandler):
                 continue
             for r in self.session.query(orm.Rom)\
                     .filter(orm.Rom.md5 == fmd5):
-                dst = os.path.join(self.deploydir, r.filename)
+                dstd = pjoin(self.deploydir,
+                             r.game.collection.name)
+                mkdir_p(dstd)
+                dst = pjoin(dstd, r.filename)
                 shutil.copyfile(f.filename, dst)
                 f.status = 'moved'
                 _log().info('mv {} {}'.format(f.filename, dst))
