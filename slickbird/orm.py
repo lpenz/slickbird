@@ -34,6 +34,7 @@ class Game(Base, AsDict):
     collection = relationship(
         'Collection', backref=backref('games', order_by=id))
     name = sqla.Column(sqla.String(50))
+    status = sqla.Column(sqla.String(50))
 
     def __repr__(self):
         return "<Game(name='%s')>" % self.name
@@ -55,6 +56,16 @@ class Rom(Base):
 
     def __repr__(self):
         return "<Rom(filename='%s')>" % self.filename
+
+
+class Fileprocessing(Base, AsDict):
+    __tablename__ = 'fileprocessing'
+    id = sqla.Column(sqla.Integer, primary_key=True)
+    filename = sqla.Column(sqla.String(80))
+    status = sqla.Column(sqla.String(50))
+
+    def __repr__(self):
+        return "<Fileprocessing(filename='%s')>" % self.filename
 
 # Session: ###################################################################
 

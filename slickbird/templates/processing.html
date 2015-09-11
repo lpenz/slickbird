@@ -1,0 +1,70 @@
+{% extends _base.html %}
+
+{% block title %}Slickbird{% end %}
+
+{% block contents %}
+
+<div class="panel panel-default">
+    <div class="panel-heading">Process a directory</div>
+    <div class="panel-body">
+        <form method="post">
+            <div class="form-group">
+                <label for="name">Filename</label>
+                <input type="text" class="form-control" id="filename" name="filename" placeholder="/">
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+            {% raw xsrf_form_html() %}
+        </form>
+    </div>
+</div>
+
+<p/>
+
+<h2>Processed so far...</h2>
+
+<div id="fileprocessing"></div>
+
+<script type="text/jsx">
+
+var FileprocessingTable = React.createClass({
+    getInitialState: function() {
+        return {data: []};
+    },
+    componentDidMount: function() {
+        $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.error(this.props.url, status, err.toString());
+            }.bind(this)
+        });
+    },
+    render: function() {
+        var fileprocessingRows = this.state.data.map(function (c) {
+            return (
+                <tr key={c.name}><td>{c.name}</td></tr>
+            );
+        });
+        return (
+            <table className="table">
+                <tbody>
+                    <tr><th>File</th></tr>
+                    {fileprocessingRows}
+                </tbody>
+            </table>
+        );
+    }
+});
+
+React.render(
+  <FileprocessingTable url="{{ reverse_url("api_fileprocessing") }}" />,
+  document.getElementById('fileprocessing')
+);
+</script>
+
+
+{% end %}

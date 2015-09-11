@@ -7,14 +7,21 @@ import tempfile
 import json
 import requests
 import logging
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
 from requests.utils import quote
 from concurrent.futures import ThreadPoolExecutor
 from tornado.concurrent import run_on_executor
 from tornado import gen
 from tornado.testing import AsyncHTTPTestCase, gen_test
 
-APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(APP_ROOT, '..'))
+pjoin = os.path.join
+APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
+sys.path.append(pjoin(APP_ROOT, '..'))
 
 import slickbird
 
@@ -32,16 +39,19 @@ class TestSlickbird(AsyncHTTPTestCase):
     def setUp(self):
         self.db = tempfile.NamedTemporaryFile(delete=False)
         self.deploydir = tempfile.mkdtemp()
+        self.processingdir = tempfile.mkdtemp()
         AsyncHTTPTestCase.setUp(self)
 
     def tearDown(self):
         os.unlink(self.db.name)
         shutil.rmtree(self.deploydir, ignore_errors=True)
+        shutil.rmtree(self.processingdir, ignore_errors=True)
 
     def get_app(self):
         return slickbird.make_app(xsrf_cookies=False,
                                   database='sqlite:///' + self.db.name,
                                   autoreload=False,
+                                  deploydir=self.deploydir,
                                   )
 
     @run_on_executor
@@ -72,13 +82,37 @@ class TestSlickbird(AsyncHTTPTestCase):
             'Nintendo - Game Boy Advance Parent-Clone (20150801-084652).dat'
         c = yield self.collectionadd(
             'Game Boy',
-            os.path.join(APP_ROOT, 'tests', filename))
+            pjoin(APP_ROOT, 'tests', filename))
         _log().info('collection status {}, games {}'
                     .format(c['collection']['status'], len(c['games'])))
 
     @gen_test
-    def test_dummyadd(self):
+    def test_dummyprocess(self):
         c = yield self.collectionadd(
             'dummy',
-            os.path.join(APP_ROOT, 'tests/dummytest.dat'))
+            pjoin(APP_ROOT, 'tests/dummytest.dat'))
         self.assertEqual(len(c['games']), 1)
+        self.assertEqual(c['games'][0]['status'], 'missing')
+        self.assertFalse(
+            os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
+        f = open(pjoin(self.processingdir, 'emptyfile1.txt'), 'w')
+        f.close()
+        resp = yield self.http_client\
+            .fetch(self.get_url('/processing'),
+                   method='POST',
+                   body=urlencode({'directory': self.processingdir}),
+                   )
+        self.assertEqual(resp.code, 200)
+        fps = 'processing'
+        while fps == 'processing':
+            resp = yield self.http_client\
+                .fetch(self.get_url('/api/fileprocessing.json'))
+            self.assertEqual(resp.code, 200)
+            fp = json.loads(resp.body.decode('utf-8'))
+            self.assertEqual(len(fp), 1)
+            self.assertEqual(
+                os.path.basename(fp[0]['filename']), 'emptyfile1.txt')
+            fps = fp[0]['status']
+        self.assertEqual(fps, 'moved')
+        self.assertTrue(
+            os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
