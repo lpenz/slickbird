@@ -2,6 +2,10 @@ language: python
 python:
   - "2.7"
   - "3.4"
+addons:
+  apt:
+    packages:
+      - linkchecker
 before_install:
   # static checkers:
   - pip install flake8

@@ -10,6 +10,7 @@ except ImportError:
     from urllib import urlencode
 
 from tornado.testing import gen_test
+from tornado.process import Subprocess
 
 pjoin = os.path.join
 APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
@@ -52,3 +53,12 @@ class TestSlickbirdBasic(base.TestSlickbirdBase):
             os.path.exists(pjoin(self.deploydir,
                                  'dummy',
                                  'emptyfile.txt')))
+
+    @gen_test(timeout=15)
+    def test_linkchecker(self):
+        p = Subprocess([
+            'linkchecker',
+            '-f/dev/null',
+            self.get_url('/')])
+        ret = yield p.wait_for_exit()
+        self.assertEqual(0, ret)
