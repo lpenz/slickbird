@@ -1,14 +1,18 @@
 
-var ScannerfileRow = React.createClass({
+var CollectionRow = React.createClass({
     render: function() {
         var c = this.props.c;
+        var url = "{{ reverse_url("game_lst", "placeholder") }}".replace("placeholder", c.name)
         return (
-            <tr><td>{c.filename}</td><td>{c.status}</td></tr>
+            <tr>
+                <td><a href={url}>{c.name}</a></td>
+                <td>{c.status}</td>
+            </tr>
         );
-    },
+    }
 });
 
-var ScannerfileTop = React.createClass({
+var CollectionTable = React.createClass({
     getInitialState: function() {
         return {data: []};
     },
@@ -30,16 +34,16 @@ var ScannerfileTop = React.createClass({
         setInterval(this.loadData, 2000);
     },
     render: function() {
-        var scannerfileRows = this.state.data.map(function (c) {
+        var collectionRows = this.state.data.map(function (c) {
             return (
-                <ScannerfileRow key={c.id} c={c}/>
+                <CollectionRow key={c.id} c={c}/>
             );
         });
         return (
             <table className="table">
                 <tbody>
-                    <tr><th>File</th><th>Status</th></tr>
-                    {scannerfileRows}
+                    <tr><th>Collection</th><th>Status</th></tr>
+                    {collectionRows}
                 </tbody>
             </table>
         );
@@ -47,7 +51,7 @@ var ScannerfileTop = React.createClass({
 });
 
 React.render(
-    <ScannerfileTop url="{{ reverse_url("api_scanner") }}" />,
-        document.getElementById('scanner')
+  <CollectionTable url="{{ reverse_url("api_collection_lst") }}" />,
+  document.getElementById('collection')
 );
 

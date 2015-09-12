@@ -31,7 +31,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         f = open(pjoin(self.scanningdir, 'emptyfile1.txt'), 'w')
         f.close()
         resp = yield self.http_client\
-            .fetch(self.get_url('/scanner'),
+            .fetch(self.get_url('/scanner/add'),
                    method='POST',
                    body=urlencode({'directory': self.scanningdir}),
                    )
@@ -39,7 +39,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         fps = 'scanner'
         while fps == 'scanner':
             resp = yield self.http_client\
-                .fetch(self.get_url('/api/scanner.json'))
+                .fetch(self.get_url('/api/scanner_lst.json'))
             self.assertEqual(resp.code, 200)
             fp = json.loads(resp.body.decode('utf-8'))
             self.assertEqual(len(fp), 1)

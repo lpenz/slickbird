@@ -1,0 +1,23 @@
+{% extends _base.html %}
+
+{% block title %}Slickbird - {{collectionname}}{% end %}
+
+{% block contents %}
+
+<div id="game">
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+</div>
+<script type="text/jsx;harmony=true" src="{{reverse_url("jsx", "game_lst.jsx")}}"></script>
+<script type="text/jsx;harmony=true">
+React.render(
+  <CollectionTop url="{{ reverse_url("api_game_lst", collectionname) }}" collectionname="{{collectionname}}" />,
+  document.getElementById('game')
+);
+</script>
+
+
+{% end %}

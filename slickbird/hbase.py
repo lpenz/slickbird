@@ -9,18 +9,22 @@ import tornado.web
 
 class BaseHandler(tornado.web.RequestHandler):
 
-    def initialize(self, session, name, deploydir):
-        self.name = name
+    def initialize(self, session, deploydir):
         self.session = session
         self.deploydir = deploydir
-        self.kwpars = {
-            'MENU': ['collections', 'add', 'scanner'],
-        }
+        self.kwpars = {}
 
 
 # Pages: #####################################################################
 
 class PageHandler(BaseHandler):
 
-    def get(self):
-        self.render(self.name + '.html', CURMENU=self.name, **self.kwpars)
+    def get(self, **kwargs):
+        kwargs.update(self.kwpars)
+        self.render(self.name + '.html', **kwargs)
+
+
+def genPageHandler(name):
+    c = type('PageHandler_' + name, (PageHandler,), {})
+    c.name = name
+    return c

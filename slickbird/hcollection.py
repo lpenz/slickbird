@@ -20,7 +20,8 @@ _log.logger = None
 
 # Add handler: ###############################################################
 
-class AddHandler(hbase.PageHandler):
+class CollectionAddHandler(hbase.PageHandler):
+    name = 'collection_add'
 
     @tornado.gen.coroutine
     def collectionadd(self, cdb, collection):
@@ -55,44 +56,15 @@ class AddHandler(hbase.PageHandler):
             name=name, filename=filename, status='loading')
         self.session.add(cdb, collection)
         self.session.commit()
-        self.redirect(self.reverse_url('collection', name))
+        self.redirect(self.reverse_url('game_lst', name))
         tornado.ioloop.IOLoop.current() \
             .spawn_callback(self.collectionadd, cdb, collection)
 
 
-# List handler: ##############################################################
-
-class CollectionHandler(hbase.PageHandler):
-
-    def get(self, collectionname):
-        self.render('collection.html',
-                    collectionname=collectionname,
-                    CURMENU='collections',
-                    **self.kwpars
-                    )
-
-
 # API: #######################################################################
 
-class CollectionsDataHandler(hbase.BaseHandler):
+class CollectionListDataHandler(hbase.BaseHandler):
 
     def get(self):
         self.write(json.dumps([c.as_dict()
                    for c in self.session.query(orm.Collection)]))
-
-
-class CollectionDataHandler(hbase.BaseHandler):
-
-    def get(self, collectionname):
-        cdb = self.session.query(orm.Collection)\
-            .filter(orm.Collection.name == collectionname)\
-            .first()
-        games = []
-        if cdb:
-            games = [g.as_dict() for g in cdb.games]
-        _log().debug('returning {} with {} games'
-                     .format(collectionname, len(games)))
-        self.write(json.dumps({
-            'collection': cdb.as_dict(),
-            'games': games,
-        }))

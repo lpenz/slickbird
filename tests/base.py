@@ -45,7 +45,9 @@ class TestSlickbirdBase(AsyncHTTPTestCase):
     def collectionadd_bg(self, name, filename):
         files = {'datfile': open(filename)}
         data = {'name': name}
-        return requests.post(self.get_url('/add'), data=data, files=files)
+        return requests.post(self.get_url('/collection/add'),
+                             data=data,
+                             files=files)
 
     @gen.coroutine
     def collectionadd(self, name, filename):

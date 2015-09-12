@@ -38,7 +38,8 @@ def mkdir_p(path):
 
 # Scanner handler: ###########################################################
 
-class ScannerHandler(hbase.PageHandler):
+class ScannerAddHandler(hbase.PageHandler):
+    name = 'scanner_add'
 
     @tornado.gen.coroutine
     def scanner(self, directory):
@@ -81,7 +82,7 @@ class ScannerHandler(hbase.PageHandler):
     @tornado.gen.coroutine
     def post(self):
         directory = self.get_argument('directory')
-        self.redirect(self.reverse_url('scanner'))
+        self.redirect(self.reverse_url('scanner_lst'))
         tornado.ioloop.IOLoop.current()\
             .spawn_callback(self.scanner, directory)
 

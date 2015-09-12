@@ -1,12 +1,3 @@
-{% extends _base.html %}
-
-{% block title %}{{collectionname}}{% end %}
-
-{% block contents %}
-
-<div id="games"></div>
-
-<script type="text/jsx">
 
 var CollectionInfo = React.createClass({
     render: function() {
@@ -34,7 +25,15 @@ var GameRow = React.createClass({
 
 var CollectionTop = React.createClass({
     getInitialState: function() {
-        return {data: {games: [], collection: {name: "{{collectionname}}", status: 'unknown'}}};
+        return {
+            data: {
+                games: [],
+                collection: {
+                    name: this.props.collectionname,
+                    status: 'unknown'
+                }
+            }
+        };
     },
     loadData: function() {
         $.ajax({
@@ -74,10 +73,3 @@ var CollectionTop = React.createClass({
     }
 });
 
-React.render(
-  <CollectionTop url="{{ reverse_url("api_collection", collectionname) }}" />,
-  document.getElementById('games')
-);
-</script>
-
-{% end %}

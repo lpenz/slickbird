@@ -1,27 +1,14 @@
-{% extends _base.html %}
 
-{% block title %}Slickbird{% end %}
-
-{% block contents %}
-
-<div id="collections"></div>
-
-<script type="text/jsx">
-
-var CollectionRow = React.createClass({
+var ScannerfileRow = React.createClass({
     render: function() {
         var c = this.props.c;
-        var url = "{{ reverse_url("collection", "") }}" + c.name
         return (
-            <tr>
-                <td><a href={url}>{c.name}</a></td>
-                <td>{c.status}</td>
-            </tr>
+            <tr><td>{c.filename}</td><td>{c.status}</td></tr>
         );
-    }
+    },
 });
 
-var CollectionTable = React.createClass({
+var ScannerfileTop = React.createClass({
     getInitialState: function() {
         return {data: []};
     },
@@ -43,16 +30,16 @@ var CollectionTable = React.createClass({
         setInterval(this.loadData, 2000);
     },
     render: function() {
-        var collectionRows = this.state.data.map(function (c) {
+        var scannerfileRows = this.state.data.map(function (c) {
             return (
-                <CollectionRow key={c.id} c={c}/>
+                <ScannerfileRow key={c.id} c={c}/>
             );
         });
         return (
             <table className="table">
                 <tbody>
-                    <tr><th>Collection</th><th>Status</th></tr>
-                    {collectionRows}
+                    <tr><th>File</th><th>Status</th></tr>
+                    {scannerfileRows}
                 </tbody>
             </table>
         );
@@ -60,10 +47,7 @@ var CollectionTable = React.createClass({
 });
 
 React.render(
-  <CollectionTable url="{{ reverse_url("api_collections") }}" />,
-  document.getElementById('collections')
+    <ScannerfileTop url="{{ reverse_url("api_scanner_lst") }}" />,
+        document.getElementById('scanner')
 );
-</script>
 
-
-{% end %}
