@@ -26,11 +26,20 @@
 
 <script type="text/jsx">
 
-var ScannerfileTable = React.createClass({
+var ScannerfileRow = React.createClass({
+    render: function() {
+        var c = this.props.c;
+        return (
+            <tr><td>{c.filename}</td><td>{c.status}</td></tr>
+        );
+    },
+});
+
+var ScannerfileTop = React.createClass({
     getInitialState: function() {
         return {data: []};
     },
-    componentDidMount: function() {
+    loadData: function() {
         $.ajax({
             url: this.props.url,
             dataType: 'json',
@@ -43,10 +52,14 @@ var ScannerfileTable = React.createClass({
             }.bind(this)
         });
     },
+    componentDidMount: function() {
+        this.loadData();
+        setInterval(this.loadData, 2000);
+    },
     render: function() {
         var scannerfileRows = this.state.data.map(function (c) {
             return (
-                <tr key={c.filename}><td>{c.filename}</td><td>{c.status}</td></tr>
+                <ScannerfileRow key={c.id} c={c}/>
             );
         });
         return (
@@ -61,7 +74,7 @@ var ScannerfileTable = React.createClass({
 });
 
 React.render(
-  <ScannerfileTable url="{{ reverse_url("api_scanner") }}" />,
+  <ScannerfileTop url="{{ reverse_url("api_scanner") }}" />,
   document.getElementById('scanner')
 );
 </script>

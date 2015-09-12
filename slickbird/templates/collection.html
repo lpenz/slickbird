@@ -8,11 +8,35 @@
 
 <script type="text/jsx">
 
-var GameTable = React.createClass({
+var CollectionInfo = React.createClass({
+    render: function() {
+        return (
+            <table className="table">
+                <tbody>
+                    <tr>
+                    <th>{this.props.c.name}</th>
+                    <td>{this.props.c.status}</td>
+                    </tr>
+                </tbody>
+            </table>
+        )
+    }
+});
+
+var GameRow = React.createClass({
+    render: function() {
+        var g = this.props.g;
+        return (
+            <tr><td>{g.name}</td><td>{g.status}</td></tr>
+        )
+    }
+});
+
+var CollectionTop = React.createClass({
     getInitialState: function() {
-        return {data: {games: [], collection: {status: 'unknown'}}};
+        return {data: {games: [], collection: {name: "{{collectionname}}", status: 'unknown'}}};
     },
-    componentDidMount: function() {
+    loadData: function() {
         $.ajax({
             url: this.props.url,
             dataType: 'json',
@@ -25,23 +49,20 @@ var GameTable = React.createClass({
             }.bind(this)
         });
     },
+    componentDidMount: function() {
+        this.loadData();
+        setInterval(this.loadData, 2000);
+    },
     render: function() {
-        var collectionStatus = this.state.data.collection.status;
+        var c = this.state.data.collection
         var gameRows = this.state.data.games.map(function (g) {
             return (
-                <tr key={g.name}><td>{g.name}</td><td>{g.status}</td></tr>
+                <GameRow key={g.name} g={g} />
             );
         });
         return (
             <div>
-                <table className="table">
-                    <tbody>
-                        <tr>
-                        <th>{{collectionname}}</th>
-                        <td>{collectionStatus}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <CollectionInfo key={c.name} c={c} />
                 <table className="table">
                     <tbody>
                         <tr><th>Game</th><th>Status</th></tr>
@@ -54,7 +75,7 @@ var GameTable = React.createClass({
 });
 
 React.render(
-  <GameTable url="{{ reverse_url("api_collection", collectionname) }}" />,
+  <CollectionTop url="{{ reverse_url("api_collection", collectionname) }}" />,
   document.getElementById('games')
 );
 </script>
