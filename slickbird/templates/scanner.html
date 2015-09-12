@@ -2,82 +2,47 @@
 
 {% block title %}Slickbird{% end %}
 
-{% block contents %}
+{% block grid %}
 
-<div class="panel panel-default">
-    <div class="panel-heading">Scan a directory</div>
-    <div class="panel-body">
-        <form method="post">
-            <div class="form-group">
-                <label for="name">Directory</label>
-                <input type="text" class="form-control" id="directory" name="directory" placeholder="/">
+<div class="row">
+
+    <div class="col-md-2">
+        <ul class="nav nav-pills nav-stacked">
+            <li role="presentation" class="active">
+                <a href="#add"  aria-controls="add" role="pill" data-toggle="pill">Add</a>
+            </li>
+            <li role="presentation">
+                <a href="#list" aria-controls="add" role="pill" data-toggle="pill">List</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-8">
+
+        <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="add">
+                <div class="panel panel-default">
+                    <div class="panel-heading">Scan a directory</div>
+                    <div class="panel-body">
+                        <form method="post">
+                            <div class="form-group">
+                                <label for="name">Directory</label>
+                                <input type="text" class="form-control" id="directory" name="directory" placeholder="/">
+                            </div>
+                            <button type="submit" class="btn btn-default">Submit</button>
+                            {% raw xsrf_form_html() %}
+                        </form>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-default">Submit</button>
-            {% raw xsrf_form_html() %}
-        </form>
+
+            <div role="tabpanel" class="tab-pane" id="list">
+                <h2>Scanned files</h2>
+                <div id="scanner"></div>
+                <script type="text/jsx;harmony=true" src="{{reverse_url("jsx", "scanner.jsx")}}"></script>
+            </div>
+
+        </div>
     </div>
 </div>
-
-<p/>
-
-<h2>Scanned files</h2>
-
-<div id="scanner"></div>
-
-<script type="text/jsx">
-
-var ScannerfileRow = React.createClass({
-    render: function() {
-        var c = this.props.c;
-        return (
-            <tr><td>{c.filename}</td><td>{c.status}</td></tr>
-        );
-    },
-});
-
-var ScannerfileTop = React.createClass({
-    getInitialState: function() {
-        return {data: []};
-    },
-    loadData: function() {
-        $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            cache: false,
-            success: function(data) {
-                this.setState({data: data});
-            }.bind(this),
-            error: function(xhr, status, err) {
-                console.error(this.props.url, status, err.toString());
-            }.bind(this)
-        });
-    },
-    componentDidMount: function() {
-        this.loadData();
-        setInterval(this.loadData, 2000);
-    },
-    render: function() {
-        var scannerfileRows = this.state.data.map(function (c) {
-            return (
-                <ScannerfileRow key={c.id} c={c}/>
-            );
-        });
-        return (
-            <table className="table">
-                <tbody>
-                    <tr><th>File</th><th>Status</th></tr>
-                    {scannerfileRows}
-                </tbody>
-            </table>
-        );
-    }
-});
-
-React.render(
-  <ScannerfileTop url="{{ reverse_url("api_scanner") }}" />,
-  document.getElementById('scanner')
-);
-</script>
-
-
 {% end %}

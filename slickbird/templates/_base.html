@@ -50,14 +50,16 @@
             </div>
         </nav>
 
-        <div class="container">
+        <div class="container-fluid">
 
+            {% block grid %}
             <div class="row">
                 <div class="col-md-8">
                     {% block contents %}
                     {% end %}
                 </div>
             </div>
+            {% end %}
 
         </div>
 

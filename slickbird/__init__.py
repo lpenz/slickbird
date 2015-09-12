@@ -51,6 +51,12 @@ class TopHandler(hbase.BaseHandler):
         self.redirect(self.reverse_url('collections'))
 
 
+class JsxHandler(hbase.BaseHandler):
+
+    def get(self, jsx):
+        self.render(jsx, **self.kwpars)
+
+
 # Application: ###############################################################
 
 class Application(tornado.web.Application):
@@ -82,6 +88,11 @@ def make_app(xsrf_cookies=False,
         URLSpec(r'/collection/(?P<collectionname>[^/]+)',
                 hcollection.CollectionHandler,
                 d('collection'), name='collection'),
+
+        URLSpec(r'/(?P<jsx>[^./]+\.jsx$)',
+                JsxHandler,
+                d('jsx'),
+                name='jsx'),
 
         URLSpec(r'/api/collections.json',
                 hcollection.CollectionsDataHandler,
