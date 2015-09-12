@@ -3,7 +3,6 @@
 import sys
 import os
 import json
-import logging
 
 try:
     from urllib.parse import urlencode
@@ -17,13 +16,6 @@ APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
 sys.path.append(pjoin(APP_ROOT, '..'))
 
 from . import common
-
-
-def _log():
-    if not _log.logger:
-        _log.logger = logging.getLogger(__name__)
-    return _log.logger
-_log.logger = None
 
 
 class TestSlickbirdBase(common.TestSlickbirdBase):

@@ -3,7 +3,6 @@
 import sys
 import os
 import json
-import logging
 
 try:
     from urllib.parse import urlencode
@@ -19,14 +18,8 @@ sys.path.append(pjoin(APP_ROOT, '..'))
 from . import base
 
 
-def _log():
-    if not _log.logger:
-        _log.logger = logging.getLogger(__name__)
-    return _log.logger
-_log.logger = None
-
-
 class TestSlickbirdBasic(base.TestSlickbirdBase):
+
     @gen_test
     def test_dummyscanner(self):
         c = yield self.collectionadd(

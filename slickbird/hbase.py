@@ -1,16 +1,8 @@
 '''Slickbird base handler class and functions'''
 
-import logging
 import tornado.gen
 import tornado.ioloop
 import tornado.web
-
-
-def _log():
-    if not _log.logger:
-        _log.logger = logging.getLogger(__name__)
-    return _log.logger
-_log.logger = None
 
 
 # Base class for handlers: ###################################################
