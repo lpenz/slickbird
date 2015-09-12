@@ -6,7 +6,6 @@ import shutil
 import tempfile
 import json
 import requests
-import logging
 
 from requests.utils import quote
 from concurrent.futures import ThreadPoolExecutor
@@ -19,13 +18,6 @@ APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
 sys.path.append(pjoin(APP_ROOT, '..'))
 
 import slickbird
-
-
-def _log():
-    if not _log.logger:
-        _log.logger = logging.getLogger(__name__)
-    return _log.logger
-_log.logger = None
 
 
 class TestSlickbirdBase(AsyncHTTPTestCase):
