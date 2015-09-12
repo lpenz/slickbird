@@ -8,7 +8,9 @@ before_install:
   # coveralls:
   - pip install coveralls
 script:
-  - python -m coverage run -m tornado.testing tests
+  - python -m coverage run -p -m tornado.testing tests
+  - python -m coverage run -p -m tornado.testing tests.stress_tests
+  - python -m coverage combine
   - pip install .
   # Test if we .gitignore test files:
   - TMP=$(tempfile)
