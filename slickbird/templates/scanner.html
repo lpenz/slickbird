@@ -5,7 +5,7 @@
 {% block contents %}
 
 <div class="panel panel-default">
-    <div class="panel-heading">Process a directory</div>
+    <div class="panel-heading">Scan a directory</div>
     <div class="panel-body">
         <form method="post">
             <div class="form-group">
@@ -20,13 +20,13 @@
 
 <p/>
 
-<h2>Processed so far...</h2>
+<h2>Scanned files</h2>
 
-<div id="fileprocessing"></div>
+<div id="scanner"></div>
 
 <script type="text/jsx">
 
-var FileprocessingTable = React.createClass({
+var ScannerfileTable = React.createClass({
     getInitialState: function() {
         return {data: []};
     },
@@ -44,7 +44,7 @@ var FileprocessingTable = React.createClass({
         });
     },
     render: function() {
-        var fileprocessingRows = this.state.data.map(function (c) {
+        var scannerfileRows = this.state.data.map(function (c) {
             return (
                 <tr key={c.filename}><td>{c.filename}</td><td>{c.status}</td></tr>
             );
@@ -53,7 +53,7 @@ var FileprocessingTable = React.createClass({
             <table className="table">
                 <tbody>
                     <tr><th>File</th><th>Status</th></tr>
-                    {fileprocessingRows}
+                    {scannerfileRows}
                 </tbody>
             </table>
         );
@@ -61,8 +61,8 @@ var FileprocessingTable = React.createClass({
 });
 
 React.render(
-  <FileprocessingTable url="{{ reverse_url("api_fileprocessing") }}" />,
-  document.getElementById('fileprocessing')
+  <ScannerfileTable url="{{ reverse_url("api_scanner") }}" />,
+  document.getElementById('scanner')
 );
 </script>
 

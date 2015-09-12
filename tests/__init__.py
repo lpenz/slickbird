@@ -39,13 +39,13 @@ class TestSlickbird(AsyncHTTPTestCase):
     def setUp(self):
         self.db = tempfile.NamedTemporaryFile(delete=False)
         self.deploydir = tempfile.mkdtemp()
-        self.processingdir = tempfile.mkdtemp()
+        self.scanningdir = tempfile.mkdtemp()
         AsyncHTTPTestCase.setUp(self)
 
     def tearDown(self):
         os.unlink(self.db.name)
         shutil.rmtree(self.deploydir, ignore_errors=True)
-        shutil.rmtree(self.processingdir, ignore_errors=True)
+        shutil.rmtree(self.scanningdir, ignore_errors=True)
 
     def get_app(self):
         return slickbird.make_app(xsrf_cookies=False,
@@ -87,7 +87,7 @@ class TestSlickbird(AsyncHTTPTestCase):
                     .format(c['collection']['status'], len(c['games'])))
 
     @gen_test
-    def test_dummyprocess(self):
+    def test_dummyscanner(self):
         c = yield self.collectionadd(
             'dummy',
             pjoin(APP_ROOT, 'tests/dummytest.dat'))
@@ -95,18 +95,18 @@ class TestSlickbird(AsyncHTTPTestCase):
         self.assertEqual(c['games'][0]['status'], 'missing')
         self.assertFalse(
             os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
-        f = open(pjoin(self.processingdir, 'emptyfile1.txt'), 'w')
+        f = open(pjoin(self.scanningdir, 'emptyfile1.txt'), 'w')
         f.close()
         resp = yield self.http_client\
-            .fetch(self.get_url('/processing'),
+            .fetch(self.get_url('/scanner'),
                    method='POST',
-                   body=urlencode({'directory': self.processingdir}),
+                   body=urlencode({'directory': self.scanningdir}),
                    )
         self.assertEqual(resp.code, 200)
-        fps = 'processing'
-        while fps == 'processing':
+        fps = 'scanner'
+        while fps == 'scanner':
             resp = yield self.http_client\
-                .fetch(self.get_url('/api/fileprocessing.json'))
+                .fetch(self.get_url('/api/scanner.json'))
             self.assertEqual(resp.code, 200)
             fp = json.loads(resp.body.decode('utf-8'))
             self.assertEqual(len(fp), 1)
