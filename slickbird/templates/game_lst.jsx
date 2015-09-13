@@ -26,6 +26,7 @@ var GameRow = React.createClass({
 var CollectionTop = React.createClass({
     getInitialState: function() {
         return {
+            hidemissing: false,
             data: {
                 games: [],
                 collection: {
@@ -37,7 +38,7 @@ var CollectionTop = React.createClass({
     },
     loadData: function() {
         $.ajax({
-            url: this.props.url,
+            url: this.props.url+'?hidemissing='+this.state.hidemissing,
             dataType: 'json',
             cache: false,
             success: function(data) {
@@ -52,6 +53,13 @@ var CollectionTop = React.createClass({
         this.loadData();
         setInterval(this.loadData, 2000);
     },
+    hideMissingToggle: function() {
+        this.setState({
+            hidemissing: !this.state.hidemissing,
+            data: this.state.data,
+        });
+        this.loadData();
+    },
     render: function() {
         var c = this.state.data.collection
         var gameRows = this.state.data.games.map(function (g) {
@@ -62,6 +70,11 @@ var CollectionTop = React.createClass({
         return (
             <div>
                 <CollectionInfo key={c.name} c={c} />
+                <p/>
+                <button type="button" className="btn" data-toggle="button" aria-pressed="false" onClick={this.hideMissingToggle} >
+                    Hide missing
+                </button>
+                <p/>
                 <table className="table">
                     <tbody>
                         <tr><th>Game</th><th>Status</th></tr>
