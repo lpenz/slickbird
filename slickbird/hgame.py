@@ -19,13 +19,13 @@ _log.logger = None
 
 # API: #######################################################################
 
-class GameListDataHandler(hbase.BaseHandler):
+class GameListDataHandler(tornado.web.RequestHandler):
 
     def get(self, collectionname):
         name = tornado.escape.url_unescape(collectionname)
         hidemissing = 'true' == self.get_argument('hidemissing',
                                                   default='false')
-        cdb = self.session.query(orm.Collection)\
+        cdb = self.settings['session'].query(orm.Collection)\
             .filter(orm.Collection.name == name)\
             .first()
         if not cdb:

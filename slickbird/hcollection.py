@@ -31,13 +31,13 @@ class CollectionAddHandler(hbase.PageHandler):
                 r = rom['rom']
                 r['filename'] = r.pop('name')
                 rdb = orm.Rom(game=gdb, **r)
-                self.session.add(rdb)
+                self.settings['session'].add(rdb)
             _log().debug('add collection {} game {}'
                          .format(cdb.name, gn))
-            self.session.add(gdb)
+            self.settings['session'].add(gdb)
             yield tornado.gen.moment
         cdb.status = 'ready'
-        self.session.commit()
+        self.settings['session'].commit()
 
     @tornado.gen.coroutine
     def post(self):
@@ -47,15 +47,15 @@ class CollectionAddHandler(hbase.PageHandler):
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
         if name == '':
             name = collection['header']['name']
-        cdb = self.session.query(orm.Collection)\
+        cdb = self.settings['session'].query(orm.Collection)\
             .filter(orm.Collection.name == name)\
             .first()
         if cdb:
-            self.session.delete(cdb)
+            self.settings['session'].delete(cdb)
         cdb = orm.Collection(
             name=name, filename=filename, status='loading')
-        self.session.add(cdb, collection)
-        self.session.commit()
+        self.settings['session'].add(cdb, collection)
+        self.settings['session'].commit()
         self.redirect(self.reverse_url('game_lst', name))
         tornado.ioloop.IOLoop.current() \
             .spawn_callback(self.collectionadd, cdb, collection)
@@ -63,8 +63,8 @@ class CollectionAddHandler(hbase.PageHandler):
 
 # API: #######################################################################
 
-class CollectionListDataHandler(hbase.BaseHandler):
+class CollectionListDataHandler(tornado.web.RequestHandler):
 
     def get(self):
         self.write(json.dumps([c.as_dict()
-                   for c in self.session.query(orm.Collection)]))
+                   for c in self.settings['session'].query(orm.Collection)]))

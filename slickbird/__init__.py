@@ -31,35 +31,27 @@ define('port', default=8888, help='Port to bind to')
 
 # Pages: #####################################################################
 
-class RootHandler(hbase.BaseHandler):
+class RootHandler(tornado.web.RequestHandler):
 
     def get(self):
         self.redirect(self.reverse_url('collection_lst'))
 
 
-class JsxHandler(hbase.BaseHandler):
+class JsxHandler(tornado.web.RequestHandler):
 
     def get(self, jsx):
         self.set_header('Content-Type', 'text/jsx; charset="utf-8"')
-        self.render(jsx, **self.kwpars)
+        self.render(jsx, **self.settings)
 
 
 # Application: ###############################################################
-
-class Application(tornado.web.Application):
-
-    def __init__(self, *args, **kwargs):
-        self.deploydir = kwargs.pop('deploydir', '.')
-        tornado.web.Application.__init__(self, *args, **kwargs)
-
 
 def make_app(xsrf_cookies=False,
              database='sqlite:///db',
              autoreload=True,
              deploydir='.'):
-    d = dict(session=orm.make_session(database=database)(),
-             deploydir=deploydir)
-    app = Application([
+    session = orm.make_session(database=database)()
+    app = tornado.web.Application([
         URLSpec(r'/',
                 tornado.web.RedirectHandler,
                 {'url': '/collection/list'},
@@ -67,37 +59,33 @@ def make_app(xsrf_cookies=False,
         # JSX:
         URLSpec(r'/(?P<jsx>[^./]+\.jsx$)',
                 JsxHandler,
-                d,
                 name='jsx'),
         # Scanner:
         URLSpec(r'/scanner/add',
                 hscanner.ScannerAddHandler,
-                d, name='scanner_add'),
+                name='scanner_add'),
         URLSpec(r'/scanner/list',
                 hbase.genPageHandler('scanner_lst'),
-                d, name='scanner_lst'),
+                name='scanner_lst'),
         # Collections:
         URLSpec(r'/collection/add',
                 hcollection.CollectionAddHandler,
-                d, name='collection_add'),
+                name='collection_add'),
         URLSpec(r'/collection/list',
                 hbase.genPageHandler('collection_lst'),
-                d, name='collection_lst'),
+                name='collection_lst'),
         URLSpec(r'/collection/(?P<collectionname>[^/]+)/list',
                 hbase.genPageHandler('game_lst'),
-                d, name='game_lst'),
+                name='game_lst'),
         # json API:
         URLSpec(r'/api/scanner_lst.json',
                 hscanner.ScannerDataHandler,
-                d,
                 name='api_scanner_lst'),
         URLSpec(r'/api/collection_lst.json',
                 hcollection.CollectionListDataHandler,
-                d,
                 name='api_collection_lst'),
         URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
                 hgame.GameListDataHandler,
-                d,
                 name='api_game_lst'),
     ],
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -105,6 +93,7 @@ def make_app(xsrf_cookies=False,
         xsrf_cookies=xsrf_cookies,
         debug=True,
         autoreload=autoreload,
+        session=session,
         deploydir=deploydir,
     )
     _log().debug(u'app created')

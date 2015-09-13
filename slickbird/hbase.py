@@ -5,22 +5,12 @@ import tornado.ioloop
 import tornado.web
 
 
-# Base class for handlers: ###################################################
-
-class BaseHandler(tornado.web.RequestHandler):
-
-    def initialize(self, session, deploydir):
-        self.session = session
-        self.deploydir = deploydir
-        self.kwpars = {}
-
-
 # Pages: #####################################################################
 
-class PageHandler(BaseHandler):
+class PageHandler(tornado.web.RequestHandler):
 
     def get(self, **kwargs):
-        kwargs.update(self.kwpars)
+        kwargs.update(self.settings)
         self.render(self.name + '.html', **kwargs)
 
 

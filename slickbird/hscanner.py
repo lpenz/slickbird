@@ -51,10 +51,10 @@ class ScannerAddHandler(hbase.PageHandler):
                     filename=os.path.join(root, f),
                     status='scanning',
                 )
-                self.session.add(fdb)
+                self.settings['session'].add(fdb)
                 yield tornado.gen.moment
-        self.session.commit()
-        for f in self.session.query(orm.Scannerfile)\
+        self.settings['session'].commit()
+        for f in self.settings['session'].query(orm.Scannerfile)\
                 .filter(orm.Scannerfile.status == 'scanning'):
             try:
                 m = hashlib.md5()
@@ -63,9 +63,9 @@ class ScannerAddHandler(hbase.PageHandler):
             except Exception as e:
                 f.status = 'error: ' + str(e)
                 continue
-            for r in self.session.query(orm.Rom)\
+            for r in self.settings['session'].query(orm.Rom)\
                     .filter(orm.Rom.md5 == fmd5):
-                dstd = pjoin(self.deploydir,
+                dstd = pjoin(self.settings['deploydir'],
                              r.game.collection.name)
                 mkdir_p(dstd)
                 dst = pjoin(dstd, r.filename)
@@ -79,7 +79,7 @@ class ScannerAddHandler(hbase.PageHandler):
             else:
                 f.status = 'irrelevant'
             yield tornado.gen.moment
-        self.session.commit()
+        self.settings['session'].commit()
 
     @tornado.gen.coroutine
     def post(self):
@@ -91,10 +91,10 @@ class ScannerAddHandler(hbase.PageHandler):
 
 # API: #######################################################################
 
-class ScannerDataHandler(hbase.BaseHandler):
+class ScannerDataHandler(tornado.web.RequestHandler):
 
     def get(self):
-        fdb = self.session.query(orm.Scannerfile)
+        fdb = self.settings['session'].query(orm.Scannerfile)
         fs = [f.as_dict() for f in fdb]
         _log().debug('returning {} files'
                      .format(len(fs)))
