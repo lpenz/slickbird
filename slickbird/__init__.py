@@ -10,8 +10,6 @@ from tornado.options import options, define
 
 import slickbird.orm as orm
 
-from . import ui_methods
-
 from slickbird import hbase
 from slickbird import hscanner
 from slickbird import hcollection
@@ -61,7 +59,7 @@ def make_app(xsrf_cookies=False,
              deploydir='.'):
     d = dict(session=orm.make_session(database=database)(),
              deploydir=deploydir)
-    return Application([
+    app = Application([
         URLSpec(r'/',
                 tornado.web.RedirectHandler,
                 {'url': '/collection/list'},
@@ -105,11 +103,12 @@ def make_app(xsrf_cookies=False,
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
         xsrf_cookies=xsrf_cookies,
-        ui_methods=ui_methods,
         debug=True,
         autoreload=autoreload,
         deploydir=deploydir,
     )
+    _log().debug(u'app created')
+    return app
 
 
 def start():
