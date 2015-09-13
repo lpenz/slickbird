@@ -92,3 +92,14 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(resp.code, 200)
         collections = json.loads(resp.body.decode('utf-8'))
         self.assertEqual(len(collections), 1)
+
+    @gen_test
+    def test_collection_noname(self):
+        yield self.collectionadd(
+            '',
+            pjoin(APP_ROOT, 'tests/dummytest.dat'))
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/collection_lst.json'))
+        self.assertEqual(resp.code, 200)
+        collections = json.loads(resp.body.decode('utf-8'))
+        self.assertEqual(collections[0]['name'], 'Dummy test file')

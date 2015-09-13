@@ -1,6 +1,7 @@
 '''Slickbird base class for tests'''
 
 import sys
+import re
 import os
 import shutil
 import tempfile
@@ -55,6 +56,9 @@ class TestSlickbirdBase(AsyncHTTPTestCase):
             name,
             filename)
         self.assertEqual(addresp.status_code, 200)
+        name = re.sub(r'''.*/collection/([^/]+)/list''',
+                      '\\1',
+                      addresp.url)
         c = yield self.collectionget(name)
         raise gen.Return(c)
 
