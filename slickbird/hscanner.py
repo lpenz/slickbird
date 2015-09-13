@@ -72,6 +72,8 @@ class ScannerAddHandler(hbase.PageHandler):
                 shutil.copyfile(f.filename, dst)
                 f.status = 'moved'
                 _log().info('mv {} {}'.format(f.filename, dst))
+                r.local = dst
+                r.game.status = 'ok'
             if f.status == 'moved':
                 os.unlink(f.filename)
             else:

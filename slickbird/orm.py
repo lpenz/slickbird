@@ -53,6 +53,7 @@ class Rom(Base):
     md5 = sqla.Column(sqla.String(32))
     sha1 = sqla.Column(sqla.String(40))
     status = sqla.Column(sqla.String(50))
+    local = sqla.Column(sqla.String(50))
 
     def __repr__(self):
         return "<Rom(filename='%s')>" % self.filename
