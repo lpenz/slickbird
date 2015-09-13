@@ -21,10 +21,6 @@ class Collection(Base, AsDict):
     filename = sqla.Column(sqla.String(50))
     status = sqla.Column(sqla.String(50))
 
-    def __repr__(self):
-        return "<Collection(name='%s')>" % (
-            self.name)
-
 
 class Game(Base, AsDict):
     __tablename__ = 'game'
@@ -35,9 +31,6 @@ class Game(Base, AsDict):
         'Collection', backref=backref('games', order_by=id))
     name = sqla.Column(sqla.String(50))
     status = sqla.Column(sqla.String(50))
-
-    def __repr__(self):
-        return "<Game(name='%s')>" % self.name
 
 
 class Rom(Base):
@@ -55,9 +48,6 @@ class Rom(Base):
     status = sqla.Column(sqla.String(50))
     local = sqla.Column(sqla.String(50))
 
-    def __repr__(self):
-        return "<Rom(filename='%s')>" % self.filename
-
 
 class Scannerfile(Base, AsDict):
     __tablename__ = 'scannerfile'
@@ -65,8 +55,6 @@ class Scannerfile(Base, AsDict):
     filename = sqla.Column(sqla.String(80))
     status = sqla.Column(sqla.String(50))
 
-    def __repr__(self):
-        return "<Scannerfile(filename='%s')>" % self.filename
 
 # Session: ###################################################################
 
