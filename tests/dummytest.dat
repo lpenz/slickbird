@@ -14,4 +14,9 @@
 		<release name="Dummy game 1" region="EUR"/>
 		<rom name="emptyfile.txt" size="0" crc="00000000" md5="D41D8CD98F00B204E9800998ECF8427E" sha1="DA39A3EE5E6B4B0D3255BFEF95601890AFD80709" status="verified"/>
 	</game>
+	<game name="Missing game 1">
+		<description>Missing game 1</description>
+		<release name="Missing game 1" region="EUR"/>
+		<rom name="missingfile.txt" size="1" crc="99999999" md5="FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" sha1="FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" status="verified"/>
+	</game>
 </datafile>

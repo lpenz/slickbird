@@ -55,11 +55,18 @@ class TestSlickbirdBase(AsyncHTTPTestCase):
             name,
             filename)
         self.assertEqual(addresp.status_code, 200)
+        c = yield self.collectionget(name)
+        raise gen.Return(c)
+
+    @gen.coroutine
+    def collectionget(self, name, hidemissing=False):
         cstatus = None
         while cstatus != 'ready':
             resp = yield self.http_client \
-                .fetch(self.get_url('/api/collection/{}.json'
-                                    .format(quote(name))))
+                .fetch(self.get_url('/api/collection/{}.json?hidemissing={}'
+                                    .format(
+                                        quote(name),
+                                        str(hidemissing).lower())))
             self.assertEqual(resp.code, 200)
             c = json.loads(resp.body.decode('utf-8'))
             cstatus = c['collection']['status']

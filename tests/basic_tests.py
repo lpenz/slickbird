@@ -19,13 +19,15 @@ from . import base
 
 
 class TestSlickbirdBase(base.TestSlickbirdBase):
+
     @gen_test
     def test_dummyscanner(self):
         c = yield self.collectionadd(
             'dummy',
             pjoin(APP_ROOT, 'tests/dummytest.dat'))
-        self.assertEqual(len(c['games']), 1)
+        self.assertEqual(len(c['games']), 2)
         self.assertEqual(c['games'][0]['status'], 'missing')
+        self.assertEqual(c['games'][1]['status'], 'missing')
         self.assertFalse(
             os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
         f = open(pjoin(self.scanningdir, 'emptyfile1.txt'), 'w')
@@ -51,3 +53,8 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             os.path.exists(pjoin(self.deploydir,
                                  'dummy',
                                  'emptyfile.txt')))
+        c = yield self.collectionget('dummy')
+        self.assertNotEqual(c['games'][0]['status'], 'missing')
+        self.assertEqual(c['games'][1]['status'], 'missing')
+        c = yield self.collectionget('dummy', hidemissing=True)
+        self.assertEqual(len(c['games']), 1)
