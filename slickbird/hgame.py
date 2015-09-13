@@ -3,6 +3,8 @@
 import logging
 import json
 
+import tornado.escape
+
 import slickbird.orm as orm
 
 from slickbird import hbase
@@ -20,20 +22,24 @@ _log.logger = None
 class GameListDataHandler(hbase.BaseHandler):
 
     def get(self, collectionname):
+        name = tornado.escape.url_unescape(collectionname)
         hidemissing = 'true' == self.get_argument('hidemissing',
                                                   default='false')
         cdb = self.session.query(orm.Collection)\
-            .filter(orm.Collection.name == collectionname)\
+            .filter(orm.Collection.name == name)\
             .first()
-        games = []
-        if cdb:
-            if hidemissing:
-                games = [g.as_dict()
-                         for g in cdb.games if g.status != 'missing']
-            else:
-                games = [g.as_dict() for g in cdb.games]
+        if not cdb:
+            _log().warn('collection {} not found'
+                        .format(name))
+            self.send_error(404)
+            return
+        if hidemissing:
+            games = [g.as_dict()
+                     for g in cdb.games if g.status != 'missing']
+        else:
+            games = [g.as_dict() for g in cdb.games]
         _log().debug('returning {} with {} games'
-                     .format(collectionname, len(games)))
+                     .format(name, len(games)))
         self.write(json.dumps({
             'collection': cdb.as_dict(),
             'games': games,
