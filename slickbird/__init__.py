@@ -10,7 +10,6 @@ from tornado.options import options, define
 
 import slickbird.orm as orm
 
-from slickbird import hbase
 from slickbird import hscanner
 from slickbird import hcollection
 from slickbird import hgame
@@ -60,33 +59,6 @@ def make_app(xsrf_cookies=False,
         URLSpec(r'/(?P<jsx>[^./]+\.jsx$)',
                 JsxHandler,
                 name='jsx'),
-        # Scanner:
-        URLSpec(r'/scanner/add',
-                hscanner.ScannerAddHandler,
-                name='scanner_add'),
-        URLSpec(r'/scanner/list',
-                hbase.genPageHandler('scanner_lst'),
-                name='scanner_lst'),
-        # Collections:
-        URLSpec(r'/collection/add',
-                hcollection.CollectionAddHandler,
-                name='collection_add'),
-        URLSpec(r'/collection/list',
-                hbase.genPageHandler('collection_lst'),
-                name='collection_lst'),
-        URLSpec(r'/collection/(?P<collectionname>[^/]+)/list',
-                hbase.genPageHandler('game_lst'),
-                name='game_lst'),
-        # json API:
-        URLSpec(r'/api/scanner_lst.json',
-                hscanner.ScannerDataHandler,
-                name='api_scanner_lst'),
-        URLSpec(r'/api/collection_lst.json',
-                hcollection.CollectionListDataHandler,
-                name='api_collection_lst'),
-        URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
-                hgame.GameListDataHandler,
-                name='api_game_lst'),
     ],
         template_path=os.path.join(os.path.dirname(__file__), 'templates'),
         static_path=os.path.join(os.path.dirname(__file__), 'static'),
@@ -96,6 +68,9 @@ def make_app(xsrf_cookies=False,
         session=session,
         deploydir=deploydir,
     )
+    hscanner.install(app)
+    hcollection.install(app)
+    hgame.install(app)
     _log().debug(u'app created')
     return app
 

@@ -3,6 +3,7 @@
 import logging
 import json
 
+from tornado.web import URLSpec
 import tornado.web
 
 from slickbird import datparse
@@ -68,3 +69,19 @@ class CollectionListDataHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps([c.as_dict()
                    for c in self.settings['session'].query(orm.Collection)]))
+
+
+# Install: ###################################################################
+
+def install(app):
+    app.add_handlers('.*', [
+        URLSpec(r'/collection/add',
+                CollectionAddHandler,
+                name='collection_add'),
+        URLSpec(r'/collection/list',
+                hbase.genPageHandler('collection_lst'),
+                name='collection_lst'),
+        URLSpec(r'/api/collection_lst.json',
+                CollectionListDataHandler,
+                name='api_collection_lst'),
+    ])

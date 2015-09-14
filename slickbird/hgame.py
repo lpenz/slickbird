@@ -4,6 +4,7 @@ import logging
 import json
 
 import tornado.escape
+from tornado.web import URLSpec
 
 import slickbird.orm as orm
 
@@ -44,3 +45,17 @@ class GameListDataHandler(tornado.web.RequestHandler):
             'collection': cdb.as_dict(),
             'games': games,
         }))
+
+
+# Install: ###################################################################
+
+def install(app):
+    app.add_handlers('.*', [
+        URLSpec(r'/collection/(?P<collectionname>[^/]+)/list',
+                hbase.genPageHandler('game_lst'),
+                name='game_lst'),
+        # json API:
+        URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
+                GameListDataHandler,
+                name='api_game_lst'),
+    ])

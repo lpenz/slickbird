@@ -6,9 +6,11 @@ import json
 import hashlib
 import shutil
 import errno
+
 import tornado.gen
 import tornado.ioloop
 import tornado.web
+from tornado.web import URLSpec
 
 from slickbird import hbase
 import slickbird.orm as orm
@@ -99,3 +101,20 @@ class ScannerDataHandler(tornado.web.RequestHandler):
         _log().debug('returning {} files'
                      .format(len(fs)))
         self.write(json.dumps(fs))
+
+
+# Install: ###################################################################
+
+def install(app):
+    app.add_handlers('.*', [
+        # Scanner:
+        URLSpec(r'/scanner/add',
+                ScannerAddHandler,
+                name='scanner_add'),
+        URLSpec(r'/scanner/list',
+                hbase.genPageHandler('scanner_lst'),
+                name='scanner_lst'),
+        URLSpec(r'/api/scanner_lst.json',
+                ScannerDataHandler,
+                name='api_scanner_lst'),
+    ])
