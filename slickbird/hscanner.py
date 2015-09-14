@@ -10,6 +10,7 @@ import errno
 import tornado.gen
 import tornado.ioloop
 import tornado.web
+from tornado.locks import Condition
 from tornado.web import URLSpec
 
 from slickbird import hbase
@@ -38,10 +39,57 @@ def mkdir_p(path):
             raise
 
 
+# Scanner worker coroutine: ##################################################
+
+class ScannerWorker(object):
+
+    def __init__(self, session, deploydir):
+        self.session = session
+        self.deploydir = deploydir
+        self.condition = Condition()
+        tornado.ioloop.IOLoop.current()\
+            .spawn_callback(self.work)
+
+    @tornado.gen.coroutine
+    def work(self):
+        self.condition.wait()
+        for f in self.session.query(orm.Scannerfile)\
+                .filter(orm.Scannerfile.status == 'scanning'):
+            try:
+                m = hashlib.md5()
+                m.update(open(f.filename, mode='rb').read())
+                fmd5 = m.hexdigest().upper()
+            except Exception as e:
+                f.status = 'error: ' + str(e)
+                continue
+            for r in self.session.query(orm.Rom)\
+                    .filter(orm.Rom.md5 == fmd5):
+                dstd = pjoin(self.deploydir,
+                             r.game.collection.name)
+                mkdir_p(dstd)
+                dst = pjoin(dstd, r.filename)
+                shutil.copyfile(f.filename, dst)
+                f.status = 'moved'
+                _log().info('mv {} {}'.format(f.filename, dst))
+                r.local = dst
+                r.game.status = 'ok'
+            if f.status == 'moved':
+                os.unlink(f.filename)
+            else:
+                f.status = 'irrelevant'
+            yield tornado.gen.moment
+        self.session.commit()
+        tornado.ioloop.IOLoop.current()\
+            .spawn_callback(self.work)
+
+
 # Scanner handler: ###########################################################
 
 class ScannerAddHandler(hbase.PageHandler):
     name = 'scanner_add'
+
+    def initialize(self, worker):
+        self.worker = worker
 
     @tornado.gen.coroutine
     def scanner(self, directory):
@@ -56,32 +104,7 @@ class ScannerAddHandler(hbase.PageHandler):
                 self.settings['session'].add(fdb)
                 yield tornado.gen.moment
         self.settings['session'].commit()
-        for f in self.settings['session'].query(orm.Scannerfile)\
-                .filter(orm.Scannerfile.status == 'scanning'):
-            try:
-                m = hashlib.md5()
-                m.update(open(f.filename, mode='rb').read())
-                fmd5 = m.hexdigest().upper()
-            except Exception as e:
-                f.status = 'error: ' + str(e)
-                continue
-            for r in self.settings['session'].query(orm.Rom)\
-                    .filter(orm.Rom.md5 == fmd5):
-                dstd = pjoin(self.settings['deploydir'],
-                             r.game.collection.name)
-                mkdir_p(dstd)
-                dst = pjoin(dstd, r.filename)
-                shutil.copyfile(f.filename, dst)
-                f.status = 'moved'
-                _log().info('mv {} {}'.format(f.filename, dst))
-                r.local = dst
-                r.game.status = 'ok'
-            if f.status == 'moved':
-                os.unlink(f.filename)
-            else:
-                f.status = 'irrelevant'
-            yield tornado.gen.moment
-        self.settings['session'].commit()
+        self.worker.condition.notify()
 
     @tornado.gen.coroutine
     def post(self):
@@ -106,10 +129,13 @@ class ScannerDataHandler(tornado.web.RequestHandler):
 # Install: ###################################################################
 
 def install(app):
+    w = ScannerWorker(app.settings['session'],
+                      app.settings['deploydir'])
     app.add_handlers('.*', [
         # Scanner:
         URLSpec(r'/scanner/add',
                 ScannerAddHandler,
+                dict(worker=w),
                 name='scanner_add'),
         URLSpec(r'/scanner/list',
                 hbase.genPageHandler('scanner_lst'),
