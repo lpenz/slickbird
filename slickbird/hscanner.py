@@ -52,7 +52,7 @@ class ScannerWorker(object):
 
     @tornado.gen.coroutine
     def work(self):
-        self.condition.wait()
+        yield self.condition.wait()
         for f in self.session.query(orm.Scannerfile)\
                 .filter(orm.Scannerfile.status == 'scanning'):
             try:
