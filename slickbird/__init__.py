@@ -68,9 +68,9 @@ def make_app(xsrf_cookies=False,
         session=session,
         deploydir=deploydir,
     )
-    hscanner.install(app)
     hcollection.install(app)
     hgame.install(app)
+    hscanner.install(app)
     _log().debug(u'app created')
     return app
 

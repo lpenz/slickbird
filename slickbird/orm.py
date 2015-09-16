@@ -33,7 +33,7 @@ class Game(Base, AsDict):
     status = sqla.Column(sqla.String(50))
 
 
-class Rom(Base):
+class Rom(Base, AsDict):
     __tablename__ = 'rom'
     id = sqla.Column(sqla.Integer, primary_key=True)
     game_id = sqla.Column(

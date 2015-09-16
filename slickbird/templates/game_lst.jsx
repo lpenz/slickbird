@@ -18,7 +18,11 @@ var GameRow = React.createClass({
     render: function() {
         var g = this.props.g;
         return (
-            <tr><td>{g.name}</td><td>{g.status}</td></tr>
+            <tr>
+                <td>{g.name}</td>
+                <td>{g.nfo}</td>
+                <td>{g.status}</td>
+            </tr>
         )
     }
 });
@@ -77,7 +81,11 @@ var CollectionTop = React.createClass({
                 <p/>
                 <table className="table">
                     <tbody>
-                        <tr><th>Game</th><th>Status</th></tr>
+                        <tr>
+                            <th>Game</th>
+                            <th>NFO</th>
+                            <th>Status</th>
+                        </tr>
                         {gameRows}
                     </tbody>
                 </table>
