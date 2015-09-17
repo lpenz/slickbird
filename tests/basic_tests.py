@@ -3,6 +3,7 @@
 import sys
 import os
 import json
+from lxml import etree
 
 try:
     from urllib.parse import urlencode
@@ -19,6 +20,9 @@ from . import base
 
 
 class TestSlickbirdBase(base.TestSlickbirdBase):
+
+    def assertExists(self, p):
+        self.assertTrue(os.path.exists(p))
 
     @gen_test
     def test_dummyscanner(self):
@@ -53,15 +57,34 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             self.assertEqual(set(scannerdict.keys()),
                              set(['emptyfile.txt', 'zfile.txt']))
             scanning = any([s['status'] == 'scanning' for s in scannerlst])
-        self.assertTrue(
-            os.path.exists(pjoin(self.deploydir,
-                                 'dummy',
-                                 'emptyfile.txt')))
+        self.assertExists(pjoin(self.deploydir,
+                                'dummy',
+                                'emptyfile.txt'))
         c = yield self.collectionget('dummy')
         self.assertNotEqual(c['games'][0]['status'], 'missing')
         self.assertEqual(c['games'][1]['status'], 'missing')
         c = yield self.collectionget('dummy', hidemissing=True)
         self.assertEqual(len(c['games']), 1)
+        scrapping = True
+        while scrapping:
+            resp = yield self.http_client\
+                .fetch(self.get_url('/api/collection/dummy.json'))
+            self.assertEqual(resp.code, 200)
+            collectiondata = json.loads(resp.body.decode('utf-8'))
+            games = dict([(g['name'], g) for g in collectiondata['games']])
+            if games['Kenseiden']['nfo'] != 'missing':
+                scrapping = False
+        nfofile = pjoin(self.deploydir,
+                        'dummy',
+                        'emptyfile.nfo')
+        self.assertExists(nfofile)
+        # print(open(nfofile).read())
+        with open(nfofile) as nfofd:
+            et = etree.parse(nfofd)
+            self.assertEqual('Kenseiden',
+                             et.getroot().find('title').text)
+            self.assertEqual('1988',
+                             et.getroot().find('year').text)
 
     @gen_test
     def test_static_urls(self):

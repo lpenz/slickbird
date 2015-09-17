@@ -75,8 +75,8 @@ class GameScrapperWorker(object):
                     _log().warn('error scrapping {}: {}'
                                 .format(r.game.name, str(response)))
                     continue
-                et = etree.fromstring(response.body)
-                for g in et.findall('./Game'):
+                etr = etree.fromstring(response.body)
+                for g in etr.findall('./Game'):
                     nfo = {}
                     for f, xpath in self.FIELDMAP.items():
                         e = g.find(xpath)
@@ -86,7 +86,11 @@ class GameScrapperWorker(object):
                         nfo['year'] = re.sub(
                             '.*([0-9]{4})$', '\\1', nfo['year'])
                 with open(nfofile, 'w') as fd:
-                    fd.write(etree.tostring(et, pretty_print=True))
+                    etw = etree.Element('game')
+                    for f in self.FIELDMAP.keys():
+                        if f in nfo:
+                            etree.SubElement(etw, f).text = nfo[f]
+                    fd.write(etree.tostring(etw, pretty_print=True))
                 r.game.nfostatus = 'present'
                 _log().info('scrapped nfo {}'.format(nfofile))
                 yield tornado.gen.moment
