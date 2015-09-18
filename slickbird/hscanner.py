@@ -15,6 +15,7 @@ from tornado.web import URLSpec
 
 from slickbird import hbase
 import slickbird.orm as orm
+import slickbird.filenames as filenames
 
 
 pjoin = os.path.join
@@ -49,48 +50,51 @@ class ScannerWorker(object):
         self.condition = Condition()
         self.scrapper = scrapper
         tornado.ioloop.IOLoop.current()\
-            .spawn_callback(self.work)
+            .spawn_callback(self.main)
 
     @tornado.gen.coroutine
-    def work(self):
+    def main(self):
         _log().info('scanner sleeping')
         yield self.condition.wait()
         _log().info('scanner woke up')
         changed = True
         while changed:
-            changed = False
-            for f in self.session.query(orm.Scannerfile)\
-                    .filter(orm.Scannerfile.status == 'scanning'):
-                changed = True
-                try:
-                    m = hashlib.md5()
-                    with open(f.filename, mode='rb') as fd:
-                        m.update(fd.read())
-                    fmd5 = m.hexdigest().upper()
-                except Exception as e:
-                    f.status = 'error: ' + str(e)
-                    continue
-                for r in self.session.query(orm.Rom)\
-                        .filter(orm.Rom.md5 == fmd5):
-                    dstd = pjoin(self.deploydir,
-                                 r.game.collection.name)
-                    mkdir_p(dstd)
-                    dst = pjoin(dstd, r.filename)
-                    shutil.copyfile(f.filename, dst)
-                    f.status = 'moved'
-                    _log().info('mv {} {}'.format(f.filename, dst))
-                    r.local = dst
-                    r.game.status = 'ok'
-                if f.status == 'moved':
-                    os.unlink(f.filename)
-                    self.scrapper.condition.notify()
-                else:
-                    f.status = 'irrelevant'
-                yield tornado.gen.moment
-        self.scrapper.condition.notify()
-        self.session.commit()
+            changed = yield self.work()
         tornado.ioloop.IOLoop.current()\
-            .spawn_callback(self.work)
+            .spawn_callback(self.main)
+
+    @tornado.gen.coroutine
+    def work(self):
+        changed = False
+        for f in self.session.query(orm.Scannerfile)\
+                .filter(orm.Scannerfile.status == 'scanning'):
+            changed = True
+            try:
+                m = hashlib.md5()
+                with open(f.filename, mode='rb') as fd:
+                    m.update(fd.read())
+                fmd5 = m.hexdigest().upper()
+            except Exception as e:
+                f.status = 'error: ' + str(e)
+                continue
+            for r in self.session.query(orm.Rom)\
+                    .filter(orm.Rom.md5 == fmd5):
+                dst = filenames.rom(self.deploydir, r)
+                mkdir_p(os.path.dirname(dst))
+                shutil.copyfile(f.filename, dst)
+                f.status = 'moved'
+                _log().info('mv {} {}'.format(f.filename, dst))
+                r.local = dst
+                r.game.status = 'ok'
+            if f.status == 'moved':
+                os.unlink(f.filename)
+                self.scrapper.condition.notify()
+            else:
+                f.status = 'irrelevant'
+            yield tornado.gen.moment
+        self.session.commit()
+        self.scrapper.condition.notify()
+        raise tornado.gen.Return(changed)
 
 
 # Scanner handler: ###########################################################

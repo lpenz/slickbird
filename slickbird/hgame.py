@@ -18,6 +18,7 @@ from tornado.web import URLSpec
 from tornado.locks import Condition
 
 import slickbird.orm as orm
+import slickbird.filenames as filenames
 
 from slickbird import hbase
 
@@ -48,58 +49,60 @@ class GameScrapperWorker(object):
         self.deploydir = deploydir
         self.condition = Condition()
         tornado.ioloop.IOLoop.current()\
-            .spawn_callback(self.work)
+            .spawn_callback(self.main)
 
     @tornado.gen.coroutine
-    def work(self):
+    def main(self):
         _log().info('scrapper sleeping')
         yield self.condition.wait()
         _log().info('scrapper woke up')
         changed = True
         while changed:
-            changed = False
-            for r in self.session.query(orm.Rom)\
-                    .filter(orm.Rom.local != ''):
-                nfofile = re.sub('\.[^.]+$',
-                                 '.nfo',
-                                 pjoin(self.deploydir,
-                                       r.game.collection.name,
-                                       r.filename))
-                if os.path.exists(nfofile):
-                    continue
-                changed = True
-                url = 'http://thegamesdb.net/api/GetGame.php?exactname=' + \
-                    quote(r.game.name)
-                http = tornado.httpclient.AsyncHTTPClient()
-                response = yield http.fetch(url)
-                if response.code != 200:
-                    _log().warn('error scrapping {}: {}'
-                                .format(r.game.name, str(response)))
-                    continue
-                etr = etree.fromstring(response.body)
-                for g in etr.findall('./Game'):
-                    nfo = {}
-                    for f, xpath in self.FIELDMAP.items():
-                        e = g.find(xpath)
-                        if e is not None:
-                            nfo[f] = e.text
-                    if 'year' in nfo and nfo['year'] is not None:
-                        nfo['year'] = re.sub(
-                            '.*([0-9]{4})$', '\\1', nfo['year'])
-                etw = etree.Element('game')
-                for f in self.FIELDMAP.keys():
-                    if f in nfo:
-                        etree.SubElement(etw, f).text = nfo[f]
-                etwstr = etree.tostring(etw,
-                                        pretty_print=True)
-                with io.open(nfofile, 'w') as fd:
-                    fd.write(etwstr.decode('utf-8'))
-                r.game.nfostatus = 'present'
-                _log().info('scrapped nfo {}'.format(nfofile))
-                yield tornado.gen.moment
-        self.session.commit()
+            changed = yield self.work()
         tornado.ioloop.IOLoop.current()\
-            .spawn_callback(self.work)
+            .spawn_callback(self.main)
+
+    @tornado.gen.coroutine
+    def work(self):
+        changed = False
+        for r in self.session.query(orm.Rom)\
+                .filter(orm.Rom.local != ''):
+            nfofile = filenames.nfo(self.deploydir,
+                                    r)
+            if os.path.exists(nfofile):
+                continue
+            changed = True
+            url = 'http://thegamesdb.net/api/GetGame.php?exactname=' + \
+                quote(r.game.name)
+            http = tornado.httpclient.AsyncHTTPClient()
+            response = yield http.fetch(url)
+            if response.code != 200:
+                _log().warn('error scrapping {}: {}'
+                            .format(r.game.name, str(response)))
+                continue
+            etr = etree.fromstring(response.body)
+            for g in etr.findall('./Game'):
+                nfo = {}
+                for f, xpath in self.FIELDMAP.items():
+                    e = g.find(xpath)
+                    if e is not None:
+                        nfo[f] = e.text
+                if 'year' in nfo and nfo['year'] is not None:
+                    nfo['year'] = re.sub(
+                        '.*([0-9]{4})$', '\\1', nfo['year'])
+            etw = etree.Element('game')
+            for f in self.FIELDMAP.keys():
+                if f in nfo:
+                    etree.SubElement(etw, f).text = nfo[f]
+            etwstr = etree.tostring(etw,
+                                    pretty_print=True)
+            with io.open(nfofile, 'w') as fd:
+                fd.write(etwstr.decode('utf-8'))
+            r.game.nfostatus = 'present'
+            _log().info('scrapped nfo {}'.format(nfofile))
+            yield tornado.gen.moment
+        self.session.commit()
+        raise tornado.gen.Return(changed)
 
 
 # API: #######################################################################
@@ -124,12 +127,9 @@ class GameListDataHandler(tornado.web.RequestHandler):
                 continue
             g = dbg.as_dict()
             g['nfo'] = 'missing'
-            dstd = pjoin(self.settings['deploydir'],
-                         dbg.collection.name)
             for r in dbg.roms:
-                nfofile = re.sub('\.[^.]+$',
-                                 '.nfo',
-                                 pjoin(dstd, r.filename))
+                nfofile = filenames.nfo(self.settings['deploydir'],
+                                        r)
                 if os.path.exists(nfofile):
                     g['nfo'] = 'present'
                     break
