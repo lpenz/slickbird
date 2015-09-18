@@ -11,6 +11,7 @@ except ImportError:
     from urllib import urlencode
 
 from tornado.testing import gen_test
+import tornado.httpclient
 
 pjoin = os.path.join
 APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
@@ -126,3 +127,12 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(resp.code, 200)
         collections = json.loads(resp.body.decode('utf-8'))
         self.assertEqual(collections[0]['name'], 'Dummy test file')
+
+    @gen_test
+    def test_collection_invalid(self):
+        try:
+            yield self.http_client\
+                .fetch(self.get_url('/api/collection/invalid.json'))
+            self.assertTrue(False)
+        except tornado.httpclient.HTTPError as e:
+            self.assertEqual(e.code, 404)
