@@ -27,6 +27,7 @@ def parse(fd=None, filename=None, datstr=None):
             fd = io.StringIO(datstr)
     assert fd
     et = etree.parse(fd)
+    fd.close()
     games = {}
     for e in et.iterfind('/game'):
         name = nameclean(e.attrib.get('cloneof', e.attrib['name']))

@@ -4,6 +4,7 @@ import logging
 import json
 import os
 import re
+import io
 
 try:
     from urllib.parse import quote
@@ -85,12 +86,14 @@ class GameScrapperWorker(object):
                     if 'year' in nfo and nfo['year'] is not None:
                         nfo['year'] = re.sub(
                             '.*([0-9]{4})$', '\\1', nfo['year'])
-                with open(nfofile, 'w') as fd:
-                    etw = etree.Element('game')
-                    for f in self.FIELDMAP.keys():
-                        if f in nfo:
-                            etree.SubElement(etw, f).text = nfo[f]
-                    fd.write(etree.tostring(etw, pretty_print=True))
+                etw = etree.Element('game')
+                for f in self.FIELDMAP.keys():
+                    if f in nfo:
+                        etree.SubElement(etw, f).text = nfo[f]
+                etwstr = etree.tostring(etw,
+                                        pretty_print=True)
+                with io.open(nfofile, 'w') as fd:
+                    fd.write(etwstr.decode('utf-8'))
                 r.game.nfostatus = 'present'
                 _log().info('scrapped nfo {}'.format(nfofile))
                 yield tornado.gen.moment

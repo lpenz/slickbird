@@ -64,7 +64,8 @@ class ScannerWorker(object):
                 changed = True
                 try:
                     m = hashlib.md5()
-                    m.update(open(f.filename, mode='rb').read())
+                    with open(f.filename, mode='rb') as fd:
+                        m.update(fd.read())
                     fmd5 = m.hexdigest().upper()
                 except Exception as e:
                     f.status = 'error: ' + str(e)
