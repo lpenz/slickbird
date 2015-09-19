@@ -140,6 +140,15 @@ class ScannerDataHandler(tornado.web.RequestHandler):
         self.write(json.dumps(fs))
 
 
+class ScannerClearHandler(tornado.web.RequestHandler):
+
+    def post(self):
+        _log().info('clearning scanner data')
+        self.settings['session'].query(orm.Scannerfile).delete()
+        self.settings['session'].commit()
+        self.write(json.dumps({'result': True}))
+
+
 # Install: ###################################################################
 
 def install(app):
@@ -158,4 +167,7 @@ def install(app):
         URLSpec(r'/api/scanner_lst.json',
                 ScannerDataHandler,
                 name='api_scanner_lst'),
+        URLSpec(r'/api/scanner_clear',
+                ScannerClearHandler,
+                name='api_scanner_clear'),
     ])

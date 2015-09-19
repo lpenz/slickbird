@@ -26,7 +26,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertTrue(os.path.exists(p))
 
     @gen_test
-    def test_dummyscanner(self):
+    def test_flow(self):
         c = yield self.collectionadd(
             'dummy',
             pjoin(APP_ROOT, 'tests/dummytest.dat'))
@@ -136,3 +136,32 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             self.assertTrue(False)
         except tornado.httpclient.HTTPError as e:
             self.assertEqual(e.code, 404)
+
+    @gen_test
+    def test_scannerclear(self):
+        # Create file, scan it:
+        with open(pjoin(self.scanningdir, 'emptyfile.txt'), 'w') as fd:
+            fd.write('asdf')
+        resp = yield self.http_client\
+            .fetch(self.get_url('/scanner/add'),
+                   method='POST',
+                   body=urlencode({'directory': self.scanningdir}),
+                   )
+        self.assertEqual(resp.code, 200)
+        # Get scanner data with file:
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/scanner_lst.json'))
+        self.assertEqual(resp.code, 200)
+        scannerlst = json.loads(resp.body.decode('utf-8'))
+        self.assertEqual(len(scannerlst), 1)
+        # Clear scanner:
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/scanner_clear'),
+                   body='',
+                   method='POST')
+        # Get scanner data without file:
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/scanner_lst.json'))
+        self.assertEqual(resp.code, 200)
+        scannerlst = json.loads(resp.body.decode('utf-8'))
+        self.assertEqual(len(scannerlst), 0)
