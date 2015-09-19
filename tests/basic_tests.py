@@ -165,3 +165,30 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(resp.code, 200)
         scannerlst = json.loads(resp.body.decode('utf-8'))
         self.assertEqual(len(scannerlst), 0)
+
+    @gen_test
+    def test_gamelistreload(self):
+        # Add collection:
+        c = yield self.collectionadd(
+            'dummy',
+            pjoin(APP_ROOT, 'tests/dummytest.dat'))
+        self.assertEqual(len(c['games']), 2)
+        self.assertEqual(c['games'][0]['status'], 'missing')
+        self.assertEqual(c['games'][1]['status'], 'missing')
+        # Create game file:
+        os.mkdir(pjoin(self.deploydir, 'dummy'))
+        with open(pjoin(self.deploydir, 'dummy', 'emptyfile.txt'), 'w') as fd:
+            fd.write('')
+        # Reload collection:
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/collection/dummy/reload'),
+                   body='',
+                   method='POST')
+        self.assertEqual(resp.code, 200)
+        # Check game status:
+        resp = yield self.http_client\
+            .fetch(self.get_url('/api/collection/dummy.json'))
+        self.assertEqual(resp.code, 200)
+        collectiondata = json.loads(resp.body.decode('utf-8'))
+        games = dict([(g['name'], g) for g in collectiondata['games']])
+        self.assertEqual(games['Kenseiden']['status'], 'ok')

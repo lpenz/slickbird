@@ -142,6 +142,38 @@ class GameListDataHandler(tornado.web.RequestHandler):
         }))
 
 
+class GameListReloadHandler(tornado.web.RequestHandler):
+
+    def post(self, collectionname):
+        name = tornado.escape.url_unescape(collectionname)
+        _log().info('reloading {}'.format(name))
+        cdb = self.settings['session'].query(orm.Collection)\
+            .filter(orm.Collection.name == name)\
+            .first()
+        cdb.status = 'ready'
+        self.settings['session'].commit()
+        if not cdb:
+            _log().warn('collection {} not found'
+                        .format(name))
+            self.send_error(404)
+            return
+        for dbg in cdb.games:
+            found = False
+            for r in dbg.roms:
+                romfile = filenames.rom(self.settings['deploydir'],
+                                        r)
+                if os.path.exists(romfile):
+                    found = True
+                    r.local = romfile
+                else:
+                    r.local = ''
+            if found:
+                dbg.status = 'ok'
+            else:
+                dbg.status = 'missing'
+        self.write(json.dumps({'result': True}))
+
+
 # Install: ###################################################################
 
 def install(app):
@@ -155,5 +187,8 @@ def install(app):
         URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
                 GameListDataHandler,
                 name='api_game_lst'),
+        URLSpec(r'/api/collection/(?P<collectionname>[^/]+)/reload',
+                GameListReloadHandler,
+                name='api_game_reload'),
     ])
     app.settings['scrapper'] = w
