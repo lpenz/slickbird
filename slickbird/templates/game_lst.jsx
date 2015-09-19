@@ -2,14 +2,14 @@
 var CollectionInfo = React.createClass({
     render: function() {
         return (
-            <table className="table">
-                <tbody>
-                    <tr>
-                    <th>{this.props.c.name}</th>
-                    <td>{this.props.c.status}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div className="panel panel-default">
+                <div className="panel-body">
+                    <h2>{this.props.c.name} <small>{this.props.c.status}</small></h2>
+                </div>
+                <button type="button" className="btn btn-primary" data-toggle="button" aria-pressed="false" onClick={this.props.hideMissingToggle} >
+                    Hide missing
+                </button>
+            </div>
         )
     }
 });
@@ -35,7 +35,7 @@ var CollectionTop = React.createClass({
                 games: [],
                 collection: {
                     name: this.props.collectionname,
-                    status: 'unknown'
+                    status: '(loading)'
                 }
             }
         };
@@ -73,12 +73,7 @@ var CollectionTop = React.createClass({
         });
         return (
             <div>
-                <CollectionInfo key={c.name} c={c} />
-                <p/>
-                <button type="button" className="btn" data-toggle="button" aria-pressed="false" onClick={this.hideMissingToggle} >
-                    Hide missing
-                </button>
-                <p/>
+                <CollectionInfo key={c.name} c={c} hideMissingToggle={this.hideMissingToggle} />
                 <table className="table">
                     <tbody>
                         <tr>
