@@ -14,8 +14,12 @@
 <script type="text/jsx;harmony=true" src="{{reverse_url("jsx", "game_lst.jsx")}}"></script>
 <script type="text/jsx;harmony=true">
 React.render(
-  <CollectionTop url="{{ reverse_url("api_game_lst", collectionname) }}" collectionname="{{collectionname}}" />,
-  document.getElementById('game')
+    <CollectionTop
+        url="{{ reverse_url("api_game_lst", collectionname) }}"
+        url_reload="{{ reverse_url("api_game_reload", collectionname) }}"
+        collectionname="{{collectionname}}"
+    />,
+    document.getElementById('game')
 );
 </script>
 

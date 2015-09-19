@@ -19,7 +19,6 @@
 $('#clear').on('click', function () {
     var $btn = $(this).button('loading');
     $.post("{{ reverse_url("api_scanner_clear") }}", function( data ) {
-        console.log('here');
         $btn.button('reset');
     });
 })

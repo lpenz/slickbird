@@ -6,6 +6,10 @@ var CollectionInfo = React.createClass({
                 <div className="panel-body">
                     <h2>{this.props.c.name} <small>{this.props.c.status}</small></h2>
                 </div>
+                <button type="button" className="btn btn-primary" aria-pressed="false" onClick={this.props.gamelistReload} >
+                    <span className="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                </button>
+                &nbsp;
                 <button type="button" className="btn btn-primary" data-toggle="button" aria-pressed="false" onClick={this.props.hideMissingToggle} >
                     Hide missing
                 </button>
@@ -57,6 +61,9 @@ var CollectionTop = React.createClass({
         this.loadData();
         setInterval(this.loadData, 2000);
     },
+    gamelistReload: function() {
+        $.post(this.props.url_reload);
+    },
     hideMissingToggle: function() {
         this.setState({
             hidemissing: !this.state.hidemissing,
@@ -73,7 +80,12 @@ var CollectionTop = React.createClass({
         });
         return (
             <div>
-                <CollectionInfo key={c.name} c={c} hideMissingToggle={this.hideMissingToggle} />
+                <CollectionInfo
+                    key={c.name}
+                    c={c}
+                    hideMissingToggle={this.hideMissingToggle}
+                    gamelistReload={this.gamelistReload}
+                />
                 <table className="table">
                     <tbody>
                         <tr>
