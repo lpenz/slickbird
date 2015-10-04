@@ -30,23 +30,32 @@ class Game(Base, AsDict):
     collection = relationship(
         'Collection', backref=backref('games', order_by=id))
     name = sqla.Column(sqla.String(50))
+    description = sqla.Column(sqla.String(200))
     status = sqla.Column(sqla.String(50))
+
+
+class Variant(Base, AsDict):
+    __tablename__ = 'variant'
+    id = sqla.Column(sqla.Integer, primary_key=True)
+    game_id = sqla.Column(
+        sqla.Integer, sqla.ForeignKey('game.id'))
+    game = relationship(
+        'Game', backref=backref('variants', order_by=id))
+    name = sqla.Column(sqla.String(50))
+    local = sqla.Column(sqla.String(50))
 
 
 class Rom(Base, AsDict):
     __tablename__ = 'rom'
     id = sqla.Column(sqla.Integer, primary_key=True)
-    game_id = sqla.Column(
-        sqla.Integer, sqla.ForeignKey('game.id'))
-    game = relationship(
-        'Game', backref=backref('roms', order_by=id))
+    variant_id = sqla.Column(
+        sqla.Integer, sqla.ForeignKey('variant.id'))
+    variant = relationship(
+        'Variant', backref=backref('roms', order_by=id))
     filename = sqla.Column(sqla.String(80))
     size = sqla.Column(sqla.Integer)
     crc = sqla.Column(sqla.String(8))
-    md5 = sqla.Column(sqla.String(32))
-    sha1 = sqla.Column(sqla.String(40))
     status = sqla.Column(sqla.String(50))
-    local = sqla.Column(sqla.String(50))
 
 
 class Scannerfile(Base, AsDict):

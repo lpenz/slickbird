@@ -6,15 +6,16 @@ import re
 pjoin = os.path.join
 
 
-def rom(deploydir, rom):
-    return pjoin(deploydir,
-                 rom.game.collection.name,
-                 rom.filename)
+def variant(deploydir, variant):
+    d = pjoin(deploydir, variant.game.collection.name)
+    if len(variant.roms) == 1:
+        rv = pjoin(d, variant.roms[0].filename)
+    else:
+        rv = pjoin(d, variant.name)
+    return rv
 
 
-def nfo(deploydir, rom):
+def nfo(deploydir, v):
     return re.sub('\.[^.]+$',
                   '.nfo',
-                  pjoin(deploydir,
-                        rom.game.collection.name,
-                        rom.filename))
+                  variant(deploydir, v))

@@ -26,13 +26,14 @@ class CollectionAddHandler(hbase.PageHandler):
 
     @tornado.gen.coroutine
     def collectionadd(self, cdb, collection):
-        for gn, roms in collection['games'].items():
+        for gn, gd in collection['games'].items():
             gdb = orm.Game(collection=cdb, name=gn, status='missing')
-            for rom in roms:
-                r = rom['rom']
-                r['filename'] = r.pop('name')
-                rdb = orm.Rom(game=gdb, **r)
-                self.settings['session'].add(rdb)
+            for variant in gd['variants']:
+                vdb = orm.Variant(game=gdb, name=variant['name'])
+                self.settings['session'].add(vdb)
+                for r in variant['roms']:
+                    rdb = orm.Rom(variant=vdb, **r)
+                    self.settings['session'].add(rdb)
             _log().debug('add collection {} game {}'
                          .format(cdb.name, gn))
             self.settings['session'].add(gdb)

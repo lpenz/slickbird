@@ -3,7 +3,7 @@
 import os
 import logging
 import json
-import hashlib
+import binascii
 import shutil
 import errno
 
@@ -70,22 +70,22 @@ class ScannerWorker(object):
                 .filter(orm.Scannerfile.status == 'scanning'):
             changed = True
             try:
-                m = hashlib.md5()
                 with open(f.filename, mode='rb') as fd:
-                    m.update(fd.read())
-                fmd5 = m.hexdigest().upper()
+                    crc = binascii.crc32(fd.read())
+                fcrc = '%08X' % crc
             except Exception as e:
                 f.status = 'error: ' + str(e)
                 continue
             for r in self.session.query(orm.Rom)\
-                    .filter(orm.Rom.md5 == fmd5):
-                dst = filenames.rom(self.deploydir, r)
+                    .filter(orm.Rom.crc == fcrc):
+                v = r.variant
+                dst = filenames.variant(self.deploydir, v)
                 mkdir_p(os.path.dirname(dst))
                 shutil.copyfile(f.filename, dst)
                 f.status = 'moved'
                 _log().info('mv {} {}'.format(f.filename, dst))
-                r.local = dst
-                r.game.status = 'ok'
+                v.local = dst
+                v.game.status = 'ok'
             if f.status == 'moved':
                 os.unlink(f.filename)
                 self.scrapper.condition.notify()

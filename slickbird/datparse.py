@@ -31,16 +31,20 @@ def parse(fd=None, filename=None, datstr=None):
     games = {}
     for e in et.iterfind('/game'):
         name = nameclean(e.attrib.get('cloneof', e.attrib['name']))
-        games.setdefault(name, [])
-        n = {
+        g = games.setdefault(name, {'name': name, 'variants': []})
+        v = {
             'name': e.attrib.get('cloneof', e.attrib['name']),
             'description': e.find('description').text,
             'releases': [r.attrib for r in e.iterfind('release')],
-            'rom': e.find('rom').attrib,
+            'roms': [{
+                'filename': e.find('rom').attrib['name'],
+                'size': e.find('rom').attrib['size'],
+                'crc': e.find('rom').attrib['crc'],
+            }],
         }
         if 'cloneof' in e.attrib:
-            n['cloneof'] = e.attrib['cloneof']
-        games[name].append(n)
+            v['cloneof'] = e.attrib['cloneof']
+        g['variants'].append(v)
     return {
         'header': dict(((e.tag, e.text) for e in et.find('/header').iter())),
         'games': OrderedDict(sorted(games.items(), key=lambda t: t[0])),
