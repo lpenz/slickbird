@@ -64,9 +64,9 @@ class GameScrapperWorker(object):
                 continue
             tornado.ioloop.IOLoop.current()\
                 .spawn_callback(self.scrap, v, nfofile)
-        raise tornado.gen.Return(False)
         tornado.ioloop.IOLoop.current()\
             .spawn_callback(self.main)
+        raise tornado.gen.Return(False)
 
     @tornado.gen.coroutine
     def scrap(self, v, nfofile):
@@ -79,8 +79,8 @@ class GameScrapperWorker(object):
                         .format(v.game.name, str(response)))
             raise tornado.gen.Return()
         etr = etree.fromstring(response.body)
+        nfo = {}
         for g in etr.findall('./Game'):
-            nfo = {}
             for f, xpath in self.FIELDMAP.items():
                 e = g.find(xpath)
                 if e is not None:
@@ -133,6 +133,7 @@ class GameListDataHandler(tornado.web.RequestHandler):
             games.append(g)
         _log().debug('returning {} with {} games'
                      .format(name, len(games)))
+        # _log().debug(json.dumps(games, indent=4))
         self.write(json.dumps({
             'collection': cdb.as_dict(),
             'games': games,
@@ -171,6 +172,13 @@ class GameListReloadHandler(tornado.web.RequestHandler):
         self.write(json.dumps({'result': True}))
 
 
+class GameScrapperHandler(tornado.web.RequestHandler):
+
+    def post(self):
+        self.settings['scrapper'].condition.notify()
+        self.write(json.dumps({'result': True}))
+
+
 # Install: ###################################################################
 
 def install(app):
@@ -187,5 +195,8 @@ def install(app):
         URLSpec(r'/api/collection/(?P<collectionname>[^/]+)/reload',
                 GameListReloadHandler,
                 name='api_game_reload'),
+        URLSpec(r'/api/scrapper',
+                GameScrapperHandler,
+                name='api_scrap'),
     ])
     app.settings['scrapper'] = w

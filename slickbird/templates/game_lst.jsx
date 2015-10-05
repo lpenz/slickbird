@@ -7,7 +7,11 @@ var CollectionInfo = React.createClass({
                     <h2>{this.props.c.name} <small>{this.props.c.status}</small></h2>
                 </div>
                 <button type="button" className="btn btn-primary" aria-pressed="false" onClick={this.props.gamelistReload} >
-                    <span className="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                    Reload from disk
+                </button>
+                &nbsp;
+                <button type="button" className="btn btn-primary" aria-pressed="false" onClick={this.props.scrapperStart} >
+                    Start scrapper
                 </button>
                 &nbsp;
                 <button type="button" className="btn btn-primary" data-toggle="button" aria-pressed="false" onClick={this.props.hideMissingToggle} >
@@ -64,6 +68,9 @@ var CollectionTop = React.createClass({
     gamelistReload: function() {
         $.post(this.props.url_reload);
     },
+    scrapperStart: function() {
+        $.post("{{ reverse_url("api_scrap") }}");
+    },
     hideMissingToggle: function() {
         this.setState({
             hidemissing: !this.state.hidemissing,
@@ -85,6 +92,7 @@ var CollectionTop = React.createClass({
                     c={c}
                     hideMissingToggle={this.hideMissingToggle}
                     gamelistReload={this.gamelistReload}
+                    scrapperStart={this.scrapperStart}
                 />
                 <table className="table">
                     <tbody>
