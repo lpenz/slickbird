@@ -44,18 +44,22 @@ class CollectionAddHandler(hbase.PageHandler):
     @tornado.gen.coroutine
     def post(self):
         name = self.get_argument('name')
+        directory = self.get_argument('directory')
         filename = self.request.files['datfile'][0]['filename']
         collection = datparse.parse(
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
         if name == '':
             name = collection['header']['name']
+        if directory == '':
+            directory = name.replace(' ', '_')
         cdb = self.settings['session'].query(orm.Collection)\
             .filter(orm.Collection.name == name)\
             .first()
         if cdb:
             self.settings['session'].delete(cdb)
         cdb = orm.Collection(
-            name=name, filename=filename, status='loading')
+            name=name, directory=directory,
+            filename=filename, status='loading')
         self.settings['session'].add(cdb, collection)
         self.settings['session'].commit()
         self.redirect(self.reverse_url('game_lst', name))

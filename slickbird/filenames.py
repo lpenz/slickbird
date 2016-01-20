@@ -7,7 +7,7 @@ pjoin = os.path.join
 
 
 def variant(deploydir, variant):
-    d = pjoin(deploydir, variant.game.collection.name)
+    d = pjoin(deploydir, variant.game.collection.directory)
     if len(variant.roms) == 1:
         rv = pjoin(d, variant.roms[0].filename)
     else:

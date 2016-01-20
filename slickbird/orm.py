@@ -18,6 +18,7 @@ class Collection(Base, AsDict):
     id = sqla.Column(
         sqla.Integer, sqla.Sequence('collection_id_seq'), primary_key=True)
     name = sqla.Column(sqla.String(50))
+    directory = sqla.Column(sqla.String(50))
     filename = sqla.Column(sqla.String(50))
     status = sqla.Column(sqla.String(50))
 
