@@ -14,11 +14,13 @@ from tornado.concurrent import run_on_executor
 from tornado import gen
 from tornado.testing import AsyncHTTPTestCase
 
-pjoin = os.path.join
-APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
-sys.path.append(pjoin(APP_ROOT, '..'))
-
-import slickbird
+try:
+    import slickbird
+except ImportError:
+    osp = os.path
+    APP_ROOT = osp.abspath(osp.join(osp.dirname(__file__), '..'))
+    sys.path.append(osp.join(APP_ROOT, '..'))
+    import slickbird
 
 
 class TestSlickbirdBase(AsyncHTTPTestCase):

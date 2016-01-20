@@ -1,16 +1,14 @@
 '''Slickbird stress tests'''
 
-import sys
 import os
 import logging
 
 from tornado.testing import gen_test
 
+from . import base
+
 pjoin = os.path.join
 APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
-sys.path.append(pjoin(APP_ROOT, '..'))
-
-from . import base
 
 
 def _log():

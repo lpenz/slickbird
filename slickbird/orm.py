@@ -3,6 +3,7 @@
 import sqlalchemy as sqla
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
@@ -67,9 +68,6 @@ class Scannerfile(Base, AsDict):
 
 
 # Session: ###################################################################
-
-from sqlalchemy.orm import sessionmaker
-
 
 def make_session(database):
     engine = sqla.create_engine(database, echo=False)

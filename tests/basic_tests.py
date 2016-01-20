@@ -1,6 +1,5 @@
 '''Slickbird basic tests'''
 
-import sys
 import os
 import json
 from lxml import etree
@@ -13,11 +12,10 @@ except ImportError:
 from tornado.testing import gen_test
 import tornado.httpclient
 
+from . import base
+
 pjoin = os.path.join
 APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
-sys.path.append(pjoin(APP_ROOT, '..'))
-
-from . import base
 
 
 class TestSlickbirdBase(base.TestSlickbirdBase):
