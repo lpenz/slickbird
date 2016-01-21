@@ -9,7 +9,7 @@ import tornado.web
 from slickbird import datparse
 import slickbird.orm as orm
 
-from slickbird import hbase
+from slickbird.web import hbase
 
 
 def _log():

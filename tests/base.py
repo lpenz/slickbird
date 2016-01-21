@@ -15,12 +15,12 @@ from tornado import gen
 from tornado.testing import AsyncHTTPTestCase
 
 try:
-    import slickbird
+    import slickbird.web
 except ImportError:
     osp = os.path
     APP_ROOT = osp.abspath(osp.join(osp.dirname(__file__), '..'))
     sys.path.append(osp.join(APP_ROOT, '..'))
-    import slickbird
+    import slickbird.web
 
 
 class TestSlickbirdBase(AsyncHTTPTestCase):
@@ -38,11 +38,11 @@ class TestSlickbirdBase(AsyncHTTPTestCase):
         shutil.rmtree(self.scanningdir, ignore_errors=True)
 
     def get_app(self):
-        return slickbird.make_app(xsrf_cookies=False,
-                                  database='sqlite:///' + self.db.name,
-                                  autoreload=False,
-                                  deploydir=self.deploydir,
-                                  )
+        return slickbird.web.make_app(xsrf_cookies=False,
+                                      database='sqlite:///' + self.db.name,
+                                      autoreload=False,
+                                      deploydir=self.deploydir,
+                                      )
 
     @run_on_executor
     def collectionadd_bg(self, name, filename):

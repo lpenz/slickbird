@@ -3,7 +3,7 @@
 import os
 from tornado.options import parse_command_line, parse_config_file, options
 
-import slickbird
+import slickbird.web
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     elif os.path.exists(defcfg):
         parse_config_file(defcfg)
     parse_command_line()  # override config file
-    slickbird.start()
+    slickbird.web.start()
 
 
 if __name__ == "__main__":

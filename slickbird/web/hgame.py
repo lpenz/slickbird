@@ -20,7 +20,7 @@ from tornado.locks import Condition
 import slickbird.orm as orm
 import slickbird.filenames as filenames
 
-from slickbird import hbase
+from slickbird.web import hbase
 
 pjoin = os.path.join
 

@@ -13,7 +13,7 @@ import tornado.web
 from tornado.locks import Condition
 from tornado.web import URLSpec
 
-from slickbird import hbase
+from slickbird.web import hbase
 import slickbird.orm as orm
 import slickbird.filenames as filenames
 
