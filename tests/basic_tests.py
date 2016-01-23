@@ -127,7 +127,16 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(collections[0]['name'], 'Dummy test file')
 
     @gen_test
-    def test_collection_invalid(self):
+    def test_collection_invalid_html(self):
+        try:
+            yield self.http_client\
+                .fetch(self.get_url('/collection/invalid/list'))
+            self.assertTrue(False)
+        except tornado.httpclient.HTTPError as e:
+            self.assertEqual(e.code, 404)
+
+    @gen_test
+    def test_collection_invalid_api(self):
         try:
             yield self.http_client\
                 .fetch(self.get_url('/api/collection/invalid.json'))

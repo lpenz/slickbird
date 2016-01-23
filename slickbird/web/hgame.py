@@ -20,8 +20,6 @@ from tornado.locks import Condition
 import slickbird.orm as orm
 import slickbird.filenames as filenames
 
-from slickbird.web import hbase
-
 pjoin = os.path.join
 
 
@@ -32,7 +30,23 @@ def _log():
 _log.logger = None
 
 
+# Pages: #####################################################################
+
+class GameListPageHandler(tornado.web.RequestHandler):
+
+    def get(self, collectionname):
+        cdb = self.settings['session'].query(orm.Collection)\
+            .filter(orm.Collection.name == collectionname)\
+            .first()
+        if not cdb:
+            self.send_error(404)
+            return
+        kwargs = {'collectionname': collectionname}
+        kwargs.update(self.settings)
+        self.render('game_lst.html', **kwargs)
+
 # Game scrapper coroutine: ###################################################
+
 
 class GameScrapperWorker(object):
     FIELDMAP = {
@@ -186,7 +200,7 @@ def install(app):
                            app.settings['deploydir'])
     app.add_handlers('.*', [
         URLSpec(r'/collection/(?P<collectionname>[^/]+)/list',
-                hbase.genPageHandler('game_lst'),
+                GameListPageHandler,
                 name='game_lst'),
         # json API:
         URLSpec(r'/api/collection/(?P<collectionname>[^/]+).json',
