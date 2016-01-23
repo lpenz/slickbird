@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import json
+
+from tornado.options import parse_command_line, parse_config_file, options
+
+import slickbird  # NOQA
+from slickbird import orm
+
+
+def main():
+    defcfg = 'slickbird.cfg'
+    parse_command_line()
+    if options.config:
+        parse_config_file(options.config)
+    elif os.path.exists(defcfg):
+        parse_config_file(defcfg)
+    parse_command_line()  # override config file
+    args = []
+    for a in sys.argv[1:]:
+        if a.startswith('--'):
+            continue
+        args.append(a)
+    session = orm.make_session(options.database)()
+    if len(args) == 0:
+        for c in session.query(orm.Collection):
+            print(c.name)
+    else:
+        for cn in args:
+            cdb = session.query(orm.Collection)\
+                .filter(orm.Collection.name == cn)\
+                .first()
+            if not cdb:
+                print('collection {} not found'.format(cn))
+                return 1
+            for gdb in cdb.games:
+                print(json.dumps(gdb.as_dict(), sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

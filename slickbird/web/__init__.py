@@ -24,13 +24,10 @@ _log.logger = None
 
 # Command-line arguments: ####################################################
 
-define('config', default=None, help='Configuration file')
 define('port', default=8888, help='Port to bind to')
-define('database', default='./db', help='Database file')
-define('home', default='.', help='Home directory of colletions')
-
 
 # Pages: #####################################################################
+
 
 class RootHandler(tornado.web.RequestHandler):
 
@@ -78,8 +75,8 @@ def make_app(xsrf_cookies=False,
 
 
 def start():
-    home = os.path.abspath(options.home)
-    db = 'sqlite:///' + os.path.join(home, options.database)
+    home = options.home
+    db = options.database
     _log().info(
         u'slickbird being started with at port {}, home at {}, database {}'.
         format(options.port, home, db))
