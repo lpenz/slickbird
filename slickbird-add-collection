@@ -5,8 +5,8 @@ import os
 from tornado.options import parse_command_line, parse_config_file
 from tornado.options import options, print_help
 
+import slickbird
 from slickbird import orm
-from slickbird import collection
 from slickbird import datparse
 
 
@@ -29,7 +29,7 @@ def main():
         sys.exit(1)
     dat = datparse.parse(filename=args[2])
     session = orm.make_session(options.database)()
-    cadder = collection.CollectionAdder(
+    cadder = slickbird.CollectionAdder(
         session=session,
         name=args[0], directory=args[1], filename=args[2], dat=dat)
     for gn, gd in dat['games'].items():

@@ -9,8 +9,8 @@ import tornado.web
 from slickbird import datparse
 import slickbird.orm as orm
 
+import slickbird
 from slickbird.web import hbase
-from slickbird import collection
 
 
 def _log():
@@ -40,7 +40,7 @@ class CollectionAddHandler(hbase.PageHandler):
         filename = self.request.files['datfile'][0]['filename']
         dat = datparse.parse(
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
-        cadder = collection.CollectionAdder(
+        cadder = slickbird.CollectionAdder(
             self.settings['session'], name, directory, filename, dat)
         self.redirect(self.reverse_url('game_lst', cadder.name))
         tornado.ioloop.IOLoop.current() \
