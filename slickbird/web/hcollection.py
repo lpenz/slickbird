@@ -10,6 +10,7 @@ from slickbird import datparse
 import slickbird.orm as orm
 
 from slickbird.web import hbase
+from slickbird import collection
 
 
 def _log():
@@ -25,20 +26,11 @@ class CollectionAddHandler(hbase.PageHandler):
     name = 'collection_add'
 
     @tornado.gen.coroutine
-    def collectionadd(self, cdb, collection):
-        for gn, gd in collection['games'].items():
-            gdb = orm.Game(collection=cdb, name=gn, status='missing')
-            for variant in gd['variants']:
-                vdb = orm.Variant(game=gdb, name=variant['name'])
-                self.settings['session'].add(vdb)
-                for r in variant['roms']:
-                    rdb = orm.Rom(variant=vdb, **r)
-                    self.settings['session'].add(rdb)
-            _log().debug('add collection {} game {}'
-                         .format(cdb.name, gn))
-            self.settings['session'].add(gdb)
+    def collectionadd(self, cadder, dat):
+        for gn, gd in dat['games'].items():
+            cadder.game_add(gn, gd)
             yield tornado.gen.moment
-        cdb.status = 'ready'
+        cadder.done()
         self.settings['session'].commit()
 
     @tornado.gen.coroutine
@@ -46,25 +38,13 @@ class CollectionAddHandler(hbase.PageHandler):
         name = self.get_argument('name')
         directory = self.get_argument('directory')
         filename = self.request.files['datfile'][0]['filename']
-        collection = datparse.parse(
+        dat = datparse.parse(
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
-        if name == '':
-            name = collection['header']['name']
-        if directory == '':
-            directory = name.replace(' ', '_')
-        cdb = self.settings['session'].query(orm.Collection)\
-            .filter(orm.Collection.name == name)\
-            .first()
-        if cdb:
-            self.settings['session'].delete(cdb)
-        cdb = orm.Collection(
-            name=name, directory=directory,
-            filename=filename, status='loading')
-        self.settings['session'].add(cdb, collection)
-        self.settings['session'].commit()
-        self.redirect(self.reverse_url('game_lst', name))
+        cadder = collection.CollectionAdder(
+            self.settings['session'], name, directory, filename, dat)
+        self.redirect(self.reverse_url('game_lst', cadder.name))
         tornado.ioloop.IOLoop.current() \
-            .spawn_callback(self.collectionadd, cdb, collection)
+            .spawn_callback(self.collectionadd, cadder, dat)
 
 
 # API: #######################################################################
