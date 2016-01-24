@@ -3,8 +3,6 @@
 import os
 import logging
 import json
-import binascii
-import shutil
 import errno
 
 import tornado.gen
@@ -14,8 +12,8 @@ from tornado.locks import Condition
 from tornado.web import URLSpec
 
 from slickbird.web import hbase
+import slickbird
 import slickbird.orm as orm
-import slickbird.filenames as filenames
 
 
 pjoin = os.path.join
@@ -66,31 +64,14 @@ class ScannerWorker(object):
     @tornado.gen.coroutine
     def work(self):
         changed = False
+        fi = slickbird.FileImporter(self.session, self.deploydir)
         for f in self.session.query(orm.Scannerfile)\
                 .filter(orm.Scannerfile.status == 'scanning'):
             changed = True
-            try:
-                with open(f.filename, mode='rb') as fd:
-                    crc = binascii.crc32(fd.read())
-                fcrc = '%08X' % crc
-            except Exception as e:
-                f.status = 'error: ' + str(e)
-                continue
-            for r in self.session.query(orm.Rom)\
-                    .filter(orm.Rom.crc == fcrc):
-                v = r.variant
-                dst = filenames.variant(self.deploydir, v)
-                mkdir_p(os.path.dirname(dst))
-                shutil.copyfile(f.filename, dst)
-                f.status = 'moved'
-                _log().info('mv {} {}'.format(f.filename, dst))
-                v.local = dst
-                v.game.status = 'ok'
-            if f.status == 'moved':
-                os.unlink(f.filename)
+            r, status = fi.file_import(f.filename)
+            f.status = status
+            if status == 'moved':
                 self.scrapper.condition.notify()
-            else:
-                f.status = 'irrelevant'
             yield tornado.gen.moment
         self.session.commit()
         self.scrapper.condition.notify()

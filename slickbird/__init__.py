@@ -3,10 +3,13 @@
 import logging
 import os
 import errno
+import binascii
+import shutil
 from lxml import etree
 from tornado.options import define, options
 
 import slickbird.orm as orm
+from slickbird import filenames
 
 
 # Slickbird option registration: #############################################
@@ -56,7 +59,6 @@ class CollectionAdder(object):
             name=name, directory=directory,
             filename=filename, status='loading')
         session.add(self.cdb)
-        session.commit()
 
     def game_add(self, gn, gd):
         gdb = orm.Game(collection=self.cdb, name=gn, status='missing')
@@ -71,6 +73,7 @@ class CollectionAdder(object):
         self.session.add(gdb)
 
     def done(self):
+        self.session.commit()
         pj = os.path.join
         base = pj(options.home, self.directory)
         mkdir_p(base)
@@ -83,4 +86,34 @@ class CollectionAdder(object):
             etree.ElementTree(nfo).write(
                 nfofile,
                 encoding='utf-8', xml_declaration=True, pretty_print=True)
+        _log().debug('collection {} is now ready'.format(self.cdb.name))
         self.cdb.status = 'ready'
+
+
+class FileImporter(object):
+
+    def __init__(self, session, deploydir):
+        self.session = session
+        self.deploydir = deploydir
+
+    def file_import(self, filepath):
+        try:
+            with open(filepath, mode='rb') as fd:
+                crc = binascii.crc32(fd.read()) & 0xffffffff
+            fcrc = '%08X' % crc
+        except Exception as e:
+            return False, 'error: ' + str(e)
+        status = 'irrelevant'
+        for r in self.session.query(orm.Rom)\
+                .filter(orm.Rom.crc == fcrc):
+            v = r.variant
+            dst = filenames.variant(self.deploydir, v)
+            mkdir_p(os.path.dirname(dst))
+            shutil.copyfile(filepath, dst)
+            status = 'moved'
+            _log().info('mv {} {}'.format(filepath, dst))
+            v.local = dst
+            v.game.status = 'ok'
+        if status == 'moved':
+            os.unlink(filepath)
+        return True, status
