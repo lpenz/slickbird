@@ -32,7 +32,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(c['games'][0]['status'], 'missing')
         self.assertEqual(c['games'][1]['status'], 'missing')
         self.assertFalse(
-            os.path.exists(pjoin(self.deploydir, 'emptyfile.txt')))
+            os.path.exists(pjoin(self.home, 'emptyfile.txt')))
         f = open(pjoin(self.scanningdir, 'emptyfile.txt'), 'w')
         f.close()
         f = open(pjoin(self.scanningdir, 'zfile.txt'), 'w')
@@ -56,7 +56,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             self.assertEqual(set(scannerdict.keys()),
                              set(['emptyfile.txt', 'zfile.txt']))
             scanning = any([s['status'] == 'scanning' for s in scannerlst])
-        self.assertExists(pjoin(self.deploydir,
+        self.assertExists(pjoin(self.home,
                                 'dummy',
                                 'emptyfile.txt'))
         c = yield self.collectionget('dummy')
@@ -73,7 +73,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             games = dict([(g['name'], g) for g in collectiondata['games']])
             if games['Kenseiden']['nfo'] != 'missing':
                 scrapping = False
-        nfofile = pjoin(self.deploydir,
+        nfofile = pjoin(self.home,
                         'dummy',
                         'emptyfile.nfo')
         self.assertExists(nfofile)
@@ -183,8 +183,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         self.assertEqual(c['games'][0]['status'], 'missing')
         self.assertEqual(c['games'][1]['status'], 'missing')
         # Create game file:
-        os.mkdir(pjoin(self.deploydir, 'dummy'))
-        with open(pjoin(self.deploydir, 'dummy', 'emptyfile.txt'), 'w') as fd:
+        with open(pjoin(self.home, 'dummy', 'emptyfile.txt'), 'w') as fd:
             fd.write('')
         # Reload collection:
         resp = yield self.http_client\

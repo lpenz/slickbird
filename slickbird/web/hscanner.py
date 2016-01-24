@@ -42,9 +42,9 @@ def mkdir_p(path):
 
 class ScannerWorker(object):
 
-    def __init__(self, session, deploydir, scrapper):
+    def __init__(self, session, home, scrapper):
         self.session = session
-        self.deploydir = deploydir
+        self.home = home
         self.condition = Condition()
         self.scrapper = scrapper
         tornado.ioloop.IOLoop.current()\
@@ -64,7 +64,7 @@ class ScannerWorker(object):
     @tornado.gen.coroutine
     def work(self):
         changed = False
-        fi = slickbird.FileImporter(self.session, self.deploydir)
+        fi = slickbird.FileImporter(self.session, self.home)
         for f in self.session.query(orm.Scannerfile)\
                 .filter(orm.Scannerfile.status == 'scanning'):
             changed = True
@@ -134,7 +134,7 @@ class ScannerClearHandler(tornado.web.RequestHandler):
 
 def install(app):
     w = ScannerWorker(app.settings['session'],
-                      app.settings['deploydir'],
+                      app.settings['home'],
                       app.settings['scrapper'])
     app.add_handlers('.*', [
         # Scanner:

@@ -28,20 +28,21 @@ class TestSlickbirdBase(AsyncHTTPTestCase):
 
     def setUp(self):
         self.db = tempfile.NamedTemporaryFile(delete=False)
-        self.deploydir = tempfile.mkdtemp()
+        self.home = tempfile.mkdtemp()
         self.scanningdir = tempfile.mkdtemp()
         AsyncHTTPTestCase.setUp(self)
 
     def tearDown(self):
         os.unlink(self.db.name)
-        shutil.rmtree(self.deploydir, ignore_errors=True)
+        shutil.rmtree(self.home, ignore_errors=True)
+        shutil.rmtree(self.scanningdir, ignore_errors=True)
         shutil.rmtree(self.scanningdir, ignore_errors=True)
 
     def get_app(self):
         return slickbird.web.make_app(xsrf_cookies=False,
                                       database='sqlite:///' + self.db.name,
                                       autoreload=False,
-                                      deploydir=self.deploydir,
+                                      home=self.home,
                                       )
 
     @run_on_executor

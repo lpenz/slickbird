@@ -47,7 +47,7 @@ class JsxHandler(tornado.web.RequestHandler):
 def make_app(xsrf_cookies=False,
              database='sqlite:///db',
              autoreload=True,
-             deploydir='.'):
+             home='.'):
     session = orm.make_session(database=database)()
     app = tornado.web.Application([
         URLSpec(r'/',
@@ -65,7 +65,7 @@ def make_app(xsrf_cookies=False,
         debug=True,
         autoreload=autoreload,
         session=session,
-        deploydir=deploydir,
+        home=home,
     )
     hcollection.install(app)
     hgame.install(app)
@@ -82,7 +82,7 @@ def start():
         format(options.port, home, db))
     app = make_app(
         database=db,
-        deploydir=home,
+        home=home,
     )
     app.listen(options.port)
     _log().info(u'slickbird started')

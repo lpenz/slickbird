@@ -6,7 +6,7 @@ import errno
 import binascii
 import shutil
 from lxml import etree
-from tornado.options import define, options
+from tornado.options import define
 
 import slickbird.orm as orm
 from slickbird import filenames
@@ -42,8 +42,9 @@ def mkdir_p(path):
 
 class CollectionAdder(object):
 
-    def __init__(self, session, name, directory, filename, dat):
+    def __init__(self, session, home, name, directory, filename, dat):
         self.session = session
+        self.home = home
         if name == '':
             name = dat['header']['name']
         self.name = name
@@ -75,7 +76,7 @@ class CollectionAdder(object):
     def done(self):
         self.session.commit()
         pj = os.path.join
-        base = pj(options.home, self.directory)
+        base = pj(self.home, self.directory)
         mkdir_p(base)
         mkdir_p(pj(base, 'artwork'))
         mkdir_p(pj(base, 'nfos'))
@@ -92,9 +93,9 @@ class CollectionAdder(object):
 
 class FileImporter(object):
 
-    def __init__(self, session, deploydir):
+    def __init__(self, session, home):
         self.session = session
-        self.deploydir = deploydir
+        self.home = home
 
     def file_import(self, filepath):
         try:
@@ -107,7 +108,7 @@ class FileImporter(object):
         for r in self.session.query(orm.Rom)\
                 .filter(orm.Rom.crc == fcrc):
             v = r.variant
-            dst = filenames.variant(self.deploydir, v)
+            dst = filenames.variant(self.home, v)
             mkdir_p(os.path.dirname(dst))
             shutil.copyfile(filepath, dst)
             status = 'moved'

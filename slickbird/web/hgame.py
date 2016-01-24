@@ -58,9 +58,9 @@ class GameScrapperWorker(object):
         'plot': './Overview',
     }
 
-    def __init__(self, session, deploydir):
+    def __init__(self, session, home):
         self.session = session
-        self.deploydir = deploydir
+        self.home = home
         self.condition = Condition()
         tornado.ioloop.IOLoop.current()\
             .spawn_callback(self.main)
@@ -72,7 +72,7 @@ class GameScrapperWorker(object):
         _log().info('scrapper woke up')
         for v in self.session.query(orm.Variant)\
                 .filter(orm.Variant.local != ''):
-            nfofile = filenames.nfo(self.deploydir,
+            nfofile = filenames.nfo(self.home,
                                     v)
             if os.path.exists(nfofile):
                 continue
@@ -139,7 +139,7 @@ class GameListDataHandler(tornado.web.RequestHandler):
             g = dbg.as_dict()
             g['nfo'] = 'missing'
             for v in dbg.variants:
-                nfofile = filenames.nfo(self.settings['deploydir'],
+                nfofile = filenames.nfo(self.settings['home'],
                                         v)
                 if os.path.exists(nfofile):
                     g['nfo'] = 'present'
@@ -172,7 +172,7 @@ class GameListReloadHandler(tornado.web.RequestHandler):
         for dbg in cdb.games:
             found = False
             for v in dbg.variants:
-                vfile = filenames.variant(self.settings['deploydir'],
+                vfile = filenames.variant(self.settings['home'],
                                           v)
                 if os.path.exists(vfile):
                     found = True
@@ -197,7 +197,7 @@ class GameScrapperHandler(tornado.web.RequestHandler):
 
 def install(app):
     w = GameScrapperWorker(app.settings['session'],
-                           app.settings['deploydir'])
+                           app.settings['home'])
     app.add_handlers('.*', [
         URLSpec(r'/collection/(?P<collectionname>[^/]+)/list',
                 GameListPageHandler,

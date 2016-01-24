@@ -31,6 +31,7 @@ def main():
     session = orm.make_session(options.database)()
     cadder = slickbird.CollectionAdder(
         session=session,
+        home=options.home,
         name=args[0], directory=args[1], filename=args[2], dat=dat)
     for gn, gd in dat['games'].items():
         cadder.game_add(gn, gd)

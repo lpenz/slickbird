@@ -41,7 +41,8 @@ class CollectionAddHandler(hbase.PageHandler):
         dat = datparse.parse(
             datstr=self.request.files['datfile'][0]['body'].decode('utf-8'))
         cadder = slickbird.CollectionAdder(
-            self.settings['session'], name, directory, filename, dat)
+            self.settings['session'], self.settings['home'],
+            name, directory, filename, dat)
         self.redirect(self.reverse_url('game_lst', cadder.name))
         tornado.ioloop.IOLoop.current() \
             .spawn_callback(self.collectionadd, cadder, dat)
