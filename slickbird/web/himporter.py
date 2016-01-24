@@ -1,4 +1,4 @@
-'''Slickbird scanner handler'''
+'''Slickbird importer handler'''
 
 import os
 import logging
@@ -38,9 +38,9 @@ def mkdir_p(path):
             raise
 
 
-# Scanner worker coroutine: ##################################################
+# Importer worker coroutine: #################################################
 
-class ScannerWorker(object):
+class ImporterWorker(object):
 
     def __init__(self, session, home, scrapper):
         self.session = session
@@ -52,9 +52,9 @@ class ScannerWorker(object):
 
     @tornado.gen.coroutine
     def main(self):
-        _log().info('scanner sleeping')
+        _log().info('importer sleeping')
         yield self.condition.wait()
-        _log().info('scanner woke up')
+        _log().info('importer woke up')
         changed = True
         while changed:
             changed = yield self.work()
@@ -65,8 +65,8 @@ class ScannerWorker(object):
     def work(self):
         changed = False
         fi = slickbird.FileImporter(self.session, self.home)
-        for f in self.session.query(orm.Scannerfile)\
-                .filter(orm.Scannerfile.status == 'scanning'):
+        for f in self.session.query(orm.Importerfile)\
+                .filter(orm.Importerfile.status == 'scanning'):
             changed = True
             r, status = fi.file_import(f.filename)
             f.status = status
@@ -78,21 +78,21 @@ class ScannerWorker(object):
         raise tornado.gen.Return(changed)
 
 
-# Scanner handler: ###########################################################
+# Importer handler: ###########################################################
 
-class ScannerAddHandler(hbase.PageHandler):
-    name = 'scanner_add'
+class ImporterAddHandler(hbase.PageHandler):
+    name = 'importer_add'
 
     def initialize(self, worker):
         self.worker = worker
 
     @tornado.gen.coroutine
-    def scanner(self, directory):
+    def importer(self, directory):
         for root, dirs, files in os.walk(directory):
             for f in files:
                 _log().debug('queue directory {} file {}'
                              .format(directory, f))
-                fdb = orm.Scannerfile(
+                fdb = orm.Importerfile(
                     filename=os.path.join(root, f),
                     status='scanning',
                 )
@@ -104,28 +104,28 @@ class ScannerAddHandler(hbase.PageHandler):
     @tornado.gen.coroutine
     def post(self):
         directory = self.get_argument('directory')
-        self.redirect(self.reverse_url('scanner_lst'))
+        self.redirect(self.reverse_url('importer_lst'))
         tornado.ioloop.IOLoop.current()\
-            .spawn_callback(self.scanner, directory)
+            .spawn_callback(self.importer, directory)
 
 
 # API: #######################################################################
 
-class ScannerDataHandler(tornado.web.RequestHandler):
+class ImporterDataHandler(tornado.web.RequestHandler):
 
     def get(self):
-        fdb = self.settings['session'].query(orm.Scannerfile)
+        fdb = self.settings['session'].query(orm.Importerfile)
         fs = [f.as_dict() for f in fdb]
         _log().debug('returning {} files'
                      .format(len(fs)))
         self.write(json.dumps(fs))
 
 
-class ScannerClearHandler(tornado.web.RequestHandler):
+class ImporterClearHandler(tornado.web.RequestHandler):
 
     def post(self):
-        _log().info('clearning scanner data')
-        self.settings['session'].query(orm.Scannerfile).delete()
+        _log().info('clearning importer data')
+        self.settings['session'].query(orm.Importerfile).delete()
         self.settings['session'].commit()
         self.write(json.dumps({'result': True}))
 
@@ -133,22 +133,22 @@ class ScannerClearHandler(tornado.web.RequestHandler):
 # Install: ###################################################################
 
 def install(app):
-    w = ScannerWorker(app.settings['session'],
-                      app.settings['home'],
-                      app.settings['scrapper'])
+    w = ImporterWorker(app.settings['session'],
+                       app.settings['home'],
+                       app.settings['scrapper'])
     app.add_handlers('.*', [
-        # Scanner:
-        URLSpec(r'/scanner/add',
-                ScannerAddHandler,
+        # Importer:
+        URLSpec(r'/importer/add',
+                ImporterAddHandler,
                 dict(worker=w),
-                name='scanner_add'),
-        URLSpec(r'/scanner/list',
-                hbase.genPageHandler('scanner_lst'),
-                name='scanner_lst'),
-        URLSpec(r'/api/scanner_lst.json',
-                ScannerDataHandler,
-                name='api_scanner_lst'),
-        URLSpec(r'/api/scanner_clear',
-                ScannerClearHandler,
-                name='api_scanner_clear'),
+                name='importer_add'),
+        URLSpec(r'/importer/list',
+                hbase.genPageHandler('importer_lst'),
+                name='importer_lst'),
+        URLSpec(r'/api/importer_lst.json',
+                ImporterDataHandler,
+                name='api_importer_lst'),
+        URLSpec(r'/api/importer_clear',
+                ImporterClearHandler,
+                name='api_importer_clear'),
     ])

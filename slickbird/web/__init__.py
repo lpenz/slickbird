@@ -10,7 +10,7 @@ from tornado.options import options, define
 
 import slickbird.orm as orm
 
-from slickbird.web import hscanner
+from slickbird.web import himporter
 from slickbird.web import hcollection
 from slickbird.web import hgame
 
@@ -69,7 +69,7 @@ def make_app(xsrf_cookies=False,
     )
     hcollection.install(app)
     hgame.install(app)
-    hscanner.install(app)
+    himporter.install(app)
     _log().debug(u'app created')
     return app
 

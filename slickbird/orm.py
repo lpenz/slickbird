@@ -60,8 +60,8 @@ class Rom(Base, AsDict):
     status = sqla.Column(sqla.String(50))
 
 
-class Scannerfile(Base, AsDict):
-    __tablename__ = 'scannerfile'
+class Importerfile(Base, AsDict):
+    __tablename__ = 'importerfile'
     id = sqla.Column(sqla.Integer, primary_key=True)
     filename = sqla.Column(sqla.String(80))
     status = sqla.Column(sqla.String(50))

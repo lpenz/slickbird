@@ -1,5 +1,5 @@
 
-var ScannerfileRow = React.createClass({
+var ImporterfileRow = React.createClass({
     render: function() {
         var c = this.props.c;
         return (
@@ -8,7 +8,7 @@ var ScannerfileRow = React.createClass({
     },
 });
 
-var ScannerfileTop = React.createClass({
+var ImporterfileTop = React.createClass({
     getInitialState: function() {
         return {data: []};
     },
@@ -30,16 +30,16 @@ var ScannerfileTop = React.createClass({
         setInterval(this.loadData, 2000);
     },
     render: function() {
-        var scannerfileRows = this.state.data.map(function (c) {
+        var importerfileRows = this.state.data.map(function (c) {
             return (
-                <ScannerfileRow key={c.id} c={c}/>
+                <ImporterfileRow key={c.id} c={c}/>
             );
         });
         return (
             <table className="table">
                 <tbody>
                     <tr><th>File</th><th>Status</th></tr>
-                    {scannerfileRows}
+                    {importerfileRows}
                 </tbody>
             </table>
         );
@@ -47,7 +47,7 @@ var ScannerfileTop = React.createClass({
 });
 
 React.render(
-    <ScannerfileTop url="{{ reverse_url("api_scanner_lst") }}" />,
-        document.getElementById('scanner')
+    <ImporterfileTop url="{{ reverse_url("api_importer_lst") }}" />,
+        document.getElementById('importer')
 );
 

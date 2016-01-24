@@ -39,7 +39,7 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         f.write('z\n')
         f.close()
         resp = yield self.http_client\
-            .fetch(self.get_url('/scanner/add'),
+            .fetch(self.get_url('/importer/add'),
                    method='POST',
                    body=urlencode({'directory': self.scanningdir}),
                    )
@@ -47,15 +47,15 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
         scanning = True
         while scanning:
             resp = yield self.http_client\
-                .fetch(self.get_url('/api/scanner_lst.json'))
+                .fetch(self.get_url('/api/importer_lst.json'))
             self.assertEqual(resp.code, 200)
-            scannerlst = json.loads(resp.body.decode('utf-8'))
-            self.assertEqual(len(scannerlst), 2)
-            scannerdict = dict([(os.path.basename(s['filename']), s)
-                               for s in scannerlst])
-            self.assertEqual(set(scannerdict.keys()),
+            importerlst = json.loads(resp.body.decode('utf-8'))
+            self.assertEqual(len(importerlst), 2)
+            importerdict = dict([(os.path.basename(s['filename']), s)
+                                 for s in importerlst])
+            self.assertEqual(set(importerdict.keys()),
                              set(['emptyfile.txt', 'zfile.txt']))
-            scanning = any([s['status'] == 'scanning' for s in scannerlst])
+            scanning = any([s['status'] == 'scanning' for s in importerlst])
         self.assertExists(pjoin(self.home,
                                 'dummy',
                                 'emptyfile.txt'))
@@ -91,11 +91,11 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             '',
             'collection_lst.jsx',
             'game_lst.jsx',
-            'scanner_lst.jsx',
+            'importer_lst.jsx',
             'collection/add',
             'collection/list',
-            'scanner/add',
-            'scanner/list',
+            'importer/add',
+            'importer/list',
         ]:
             resp = yield self.http_client\
                 .fetch(self.get_url('/{}'.format(f)))
@@ -145,33 +145,33 @@ class TestSlickbirdBase(base.TestSlickbirdBase):
             self.assertEqual(e.code, 404)
 
     @gen_test
-    def test_scannerclear(self):
+    def test_importerclear(self):
         # Create file, scan it:
         with open(pjoin(self.scanningdir, 'emptyfile.txt'), 'w') as fd:
             fd.write('asdf')
         resp = yield self.http_client\
-            .fetch(self.get_url('/scanner/add'),
+            .fetch(self.get_url('/importer/add'),
                    method='POST',
                    body=urlencode({'directory': self.scanningdir}),
                    )
         self.assertEqual(resp.code, 200)
-        # Get scanner data with file:
+        # Get importer data with file:
         resp = yield self.http_client\
-            .fetch(self.get_url('/api/scanner_lst.json'))
+            .fetch(self.get_url('/api/importer_lst.json'))
         self.assertEqual(resp.code, 200)
-        scannerlst = json.loads(resp.body.decode('utf-8'))
-        self.assertEqual(len(scannerlst), 1)
-        # Clear scanner:
+        importerlst = json.loads(resp.body.decode('utf-8'))
+        self.assertEqual(len(importerlst), 1)
+        # Clear importer:
         resp = yield self.http_client\
-            .fetch(self.get_url('/api/scanner_clear'),
+            .fetch(self.get_url('/api/importer_clear'),
                    body='',
                    method='POST')
-        # Get scanner data without file:
+        # Get importer data without file:
         resp = yield self.http_client\
-            .fetch(self.get_url('/api/scanner_lst.json'))
+            .fetch(self.get_url('/api/importer_lst.json'))
         self.assertEqual(resp.code, 200)
-        scannerlst = json.loads(resp.body.decode('utf-8'))
-        self.assertEqual(len(scannerlst), 0)
+        importerlst = json.loads(resp.body.decode('utf-8'))
+        self.assertEqual(len(importerlst), 0)
 
     @gen_test
     def test_gamelistreload(self):
