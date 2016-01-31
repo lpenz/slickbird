@@ -117,4 +117,5 @@ class FileImporter(object):
             v.game.status = 'ok'
         if status == 'moved':
             os.unlink(filepath)
+        self.session.commit()
         return True, status
