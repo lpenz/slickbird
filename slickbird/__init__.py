@@ -80,10 +80,13 @@ class CollectionAdder(object):
         mkdir_p(base)
         mkdir_p(pj(base, 'artwork'))
         mkdir_p(pj(base, 'nfos'))
-        nfofile = pj(base, 'collection.nfo')
+        nfofile = pj(base, 'omniitem.nfo')
         if not os.path.exists(nfofile):
-            nfo = etree.Element('collection')
+            nfo = etree.Element('omniitem')
             etree.SubElement(nfo, 'title').text = self.name
+            target = etree.SubElement(nfo, 'target')
+            target.text = 'nfos/*.nfo'
+            target.attrib['type'] = 'glob'
             etree.ElementTree(nfo).write(
                 nfofile,
                 encoding='utf-8', xml_declaration=True, pretty_print=True)
