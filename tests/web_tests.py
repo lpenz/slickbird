@@ -1,4 +1,4 @@
-'''Slickbird basic tests'''
+'''Slickbird web tests'''
 
 import os
 import json
@@ -18,7 +18,7 @@ pjoin = os.path.join
 APP_ROOT = os.path.abspath(pjoin(os.path.dirname(__file__), '..'))
 
 
-class TestSlickbirdBase(base.TestSlickbirdBase):
+class TestSlickbirdWeb(base.TestSlickbirdBase):
 
     def assertExists(self, p):
         self.assertTrue(os.path.exists(p))

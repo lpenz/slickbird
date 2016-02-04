@@ -74,7 +74,6 @@ class CollectionAdder(object):
         self.session.add(gdb)
 
     def done(self):
-        self.session.commit()
         pj = os.path.join
         base = pj(self.home, self.directory)
         mkdir_p(base)
@@ -92,6 +91,7 @@ class CollectionAdder(object):
                 encoding='utf-8', xml_declaration=True, pretty_print=True)
         _log().debug('collection {} is now ready'.format(self.cdb.name))
         self.cdb.status = 'ready'
+        self.session.commit()
 
 
 class FileImporter(object):

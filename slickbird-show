@@ -2,16 +2,12 @@
 
 import os
 import sys
-import json
 
 from tornado.options import parse_command_line, parse_config_file, options
 
 import slickbird  # NOQA
 from slickbird import orm
-
-
-def o(d):
-    sys.stdout.write(str(d))
+from slickbird.collectionjson import collectionjson
 
 
 def main():
@@ -39,33 +35,7 @@ def main():
             if not cdb:
                 print('collection {} not found'.format(cn))
                 return 1
-            o('[\n')
-            gfirst = True
-            for gdb in cdb.games:
-                if not gfirst:
-                    o(',\n')
-                gfirst = False
-                o('{ "game": ')
-                o(json.dumps(gdb.as_dict(), sort_keys=True))
-                o(',\n  "variants": [\n')
-                vfirst = True
-                for vdb in gdb.variants:
-                    if not vfirst:
-                        o(',\n')
-                    vfirst = False
-                    vfirst = False
-                    o('      { "variant": ')
-                    o(json.dumps(vdb.as_dict(), sort_keys=True))
-                    o(',\n        "roms":  [ ')
-                    rfirst = True
-                    for rdb in vdb.roms:
-                        if not rfirst:
-                            o(',\n                   ')
-                        rfirst = False
-                        o(json.dumps(rdb.as_dict(), sort_keys=True))
-                    o(']}')
-                o(']}')
-            o('\n]\n')
+            collectionjson(cdb, sys.stdout)
 
 if __name__ == "__main__":
     main()
