@@ -58,6 +58,7 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
             scanning = any([s['status'] == 'scanning' for s in importerlst])
         self.assertExists(pjoin(self.home,
                                 'dummy',
+                                'Kenseiden',
                                 'emptyfile.txt'))
         c = yield self.collectionget('dummy')
         self.assertNotEqual(c['games'][0]['status'], 'missing')
@@ -75,7 +76,8 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
                 scrapping = False
         nfofile = pjoin(self.home,
                         'dummy',
-                        'emptyfile.nfo')
+                        'Kenseiden',
+                        'omniitem.nfo')
         self.assertExists(nfofile)
         # print(open(nfofile).read())
         with open(nfofile) as nfofd:
@@ -183,7 +185,11 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
         self.assertEqual(c['games'][0]['status'], 'missing')
         self.assertEqual(c['games'][1]['status'], 'missing')
         # Create game file:
-        with open(pjoin(self.home, 'dummy', 'emptyfile.txt'), 'w') as fd:
+        os.makedirs(pjoin(self.home, 'dummy', 'Kenseiden'))
+        with open(
+                pjoin(self.home, 'dummy', 'Kenseiden', 'emptyfile.txt'),
+                'w')\
+                as fd:
             fd.write('')
         # Reload collection:
         resp = yield self.http_client\

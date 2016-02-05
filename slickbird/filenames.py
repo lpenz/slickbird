@@ -1,13 +1,20 @@
 '''Functions that generate filenames'''
 
 import os
-import re
+
 
 pjoin = os.path.join
 
 
+def vdir(home, variant):
+    return pjoin(home,
+                 variant.game.collection.directory,
+                 variant.game.name,
+                 )
+
+
 def variant(home, variant):
-    d = pjoin(home, variant.game.collection.directory)
+    d = vdir(home, variant)
     if len(variant.roms) == 1:
         rv = pjoin(d, variant.roms[0].filename)
     else:
@@ -15,7 +22,7 @@ def variant(home, variant):
     return rv
 
 
-def nfo(home, v):
-    return re.sub('\.[^.]+$',
-                  '.nfo',
-                  variant(home, v))
+def nfo(home, variant):
+    return pjoin(
+        vdir(home, variant),
+        'omniitem.nfo')
