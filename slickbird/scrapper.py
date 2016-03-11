@@ -91,6 +91,8 @@ class Scrapper(object):
                 etree.SubElement(etw, f).text = nfo[f]
         etwstr = etree.tostring(etw,
                                 pretty_print=True)
+        if not os.path.exists(os.path.dirname(nfofile)):
+            os.makedirs(os.path.dirname(nfofile))
         with io.open(nfofile, 'w') as fd:
             fd.write(etwstr.decode('utf-8'))
         v.game.nfostatus = 'present'
