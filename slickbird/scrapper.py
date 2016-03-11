@@ -68,7 +68,11 @@ class Scrapper(object):
             _log().warn('error scrapping {}: {}'
                         .format(v.game.name, str(response)))
             raise tornado.gen.Return()
-        etr = etree.fromstring(response.body)
+        try:
+            etr = etree.fromstring(response.body)
+        except Exception as e:
+            _log().warn('scrapping error in {}, got invalid XML ({})'
+                        .format(v.name, str(e)))
         nfo = {}
         for g in etr.findall('./Game'):
             for f, xpath in self.FIELDMAP.items():
