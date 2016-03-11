@@ -76,7 +76,12 @@ class Scrapper(object):
         except Exception as e:
             _log().warn('scrapping error in {}, got invalid XML ({})'
                         .format(v.name, str(e)))
+        nfodir = os.path.dirname(nfofile)
+        if not os.path.exists(nfodir):
+            os.makedirs(nfodir)
         nfo = {}
+        baseimageurl = etr.find('./baseImgUrl').text
+        images = {}
         for g in etr.findall('./Game'):
             for f, xpath in self.FIELDMAP.items():
                 e = g.find(xpath)
@@ -85,17 +90,32 @@ class Scrapper(object):
             if 'year' in nfo and nfo['year'] is not None:
                 nfo['year'] = re.sub(
                     '.*([0-9]{4})$', '\\1', nfo['year'])
+            for img in g.findall('./Images/*'):
+                if img.tag in images:
+                    continue
+                imgo = img.find('./original')
+                if imgo is not None:
+                    url = os.path.join(baseimageurl, imgo.text)
+                else:
+                    url = os.path.join(baseimageurl, img.text)
+                images[img.tag] = self.image_fetch(v, nfodir, img.tag, url)
+        yield images.values()
         etw = etree.Element('game')
         for f in self.FIELDMAP.keys():
             if f in nfo:
                 etree.SubElement(etw, f).text = nfo[f]
         etwstr = etree.tostring(etw,
                                 pretty_print=True)
-        if not os.path.exists(os.path.dirname(nfofile)):
-            os.makedirs(os.path.dirname(nfofile))
         with io.open(nfofile, 'w') as fd:
             fd.write(etwstr.decode('utf-8'))
         v.game.nfostatus = 'present'
         _log().info('scrapped {}'.format(nfofile))
         self.session.commit()
         raise tornado.gen.Return(None)
+
+    @tornado.gen.coroutine
+    def image_fetch(self, v, nfodir, tag, url):
+        http = tornado.httpclient.AsyncHTTPClient()
+        response = yield http.fetch(url)
+        with io.open(os.path.join(nfodir, os.path.basename(url)), 'wb') as fd:
+            fd.write(response.body)
