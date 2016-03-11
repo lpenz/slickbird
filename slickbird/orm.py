@@ -44,7 +44,6 @@ class Variant(Base, AsDict):
     game = relationship(
         'Game', backref=backref('variants', order_by=id))
     name = sqla.Column(sqla.String(50))
-    local = sqla.Column(sqla.String(50))
 
 
 class Rom(Base, AsDict):

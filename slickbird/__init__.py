@@ -116,7 +116,6 @@ class FileImporter(object):
             shutil.copyfile(filepath, dst)
             status = 'moved'
             _log().info('mv {} {}'.format(filepath, dst))
-            v.local = dst
             v.game.status = 'ok'
         if status == 'moved':
             os.unlink(filepath)

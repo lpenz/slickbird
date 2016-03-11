@@ -122,9 +122,6 @@ class GameListReloadHandler(tornado.web.RequestHandler):
                                           v)
                 if os.path.exists(vfile):
                     found = True
-                    v.local = vfile
-                else:
-                    v.local = ''
             if found:
                 dbg.status = 'ok'
             else:
