@@ -46,8 +46,7 @@ class Scrapper(object):
     @tornado.gen.coroutine
     def scrap_missing(self):
         l = []
-        for v in self.session.query(orm.Variant)\
-                .filter(orm.Variant.local != ''):
+        for v in self.session.query(orm.Variant):
             nfofile = filenames.nfo(self.home,
                                     v)
             if os.path.exists(nfofile):
@@ -55,7 +54,11 @@ class Scrapper(object):
                              .format(v.name, nfofile))
                 continue
             l.append(self.scrap(v, nfofile))
-        yield l
+            if len(l) > 5:
+                yield l
+                l = []
+        if len(l) > 0:
+            yield l
 
     @tornado.gen.coroutine
     def scrap(self, v, nfofile):
