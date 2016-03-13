@@ -99,7 +99,7 @@ class Scrapper(object):
                 else:
                     url = os.path.join(baseimageurl, img.text)
                 images[img.tag] = self.image_fetch(v, nfodir, img.tag, url)
-        yield images.values()
+        yield list(images.values())
         etw = etree.Element('game')
         for f in self.FIELDMAP.keys():
             if f in nfo:

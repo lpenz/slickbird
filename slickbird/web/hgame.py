@@ -74,8 +74,8 @@ class GameListDataHandler(tornado.web.RequestHandler):
             .filter(orm.Collection.name == name)\
             .first()
         if not cdb:
-            _log().warn('collection {} not found'
-                        .format(name))
+            _log().warning('collection {} not found'
+                           .format(name))
             self.send_error(404)
             return
         games = []
@@ -111,8 +111,8 @@ class GameListReloadHandler(tornado.web.RequestHandler):
         cdb.status = 'ready'
         self.settings['session'].commit()
         if not cdb:
-            _log().warn('collection {} not found'
-                        .format(name))
+            _log().warning('collection {} not found'
+                           .format(name))
             self.send_error(404)
             return
         for dbg in cdb.games:
