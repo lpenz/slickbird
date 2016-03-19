@@ -58,6 +58,7 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
             scanning = any([s['status'] == 'scanning' for s in importerlst])
         self.assertExists(pjoin(self.home,
                                 'dummy',
+                                'roms',
                                 'Kenseiden',
                                 'emptyfile.txt'))
         c = yield self.collectionget('dummy')
@@ -76,6 +77,7 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
                 scrapping = False
         nfofile = pjoin(self.home,
                         'dummy',
+                        'meta',
                         'Kenseiden',
                         'omniitem.nfo')
         self.assertExists(nfofile)

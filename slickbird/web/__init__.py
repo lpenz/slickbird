@@ -70,7 +70,7 @@ def make_app(xsrf_cookies=False,
     hcollection.install(app)
     hgame.install(app)
     himporter.install(app)
-    _log().debug(u'app created')
+    _log().info(u'app created')
     return app
 
 

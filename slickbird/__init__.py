@@ -89,7 +89,7 @@ class CollectionAdder(object):
             etree.ElementTree(nfo).write(
                 nfofile,
                 encoding='utf-8', xml_declaration=True, pretty_print=True)
-        _log().debug('collection {} is now ready'.format(self.cdb.name))
+        _log().info('collection {} is now ready'.format(self.cdb.name))
         self.cdb.status = 'ready'
         self.session.commit()
 

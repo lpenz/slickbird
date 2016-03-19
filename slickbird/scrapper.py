@@ -53,6 +53,11 @@ class Scrapper(object):
                 _log().debug('scrapper skipping {}, found {}'
                              .format(v.name, nfofile))
                 continue
+            romfile = filenames.variant(self.home, v)
+            if not os.path.exists(romfile):
+                _log().debug('scrapper skipping {}, rom not found {}'
+                             .format(v.name, romfile))
+                continue
             l.append(self.scrap(v, nfofile))
             if len(l) > 5:
                 yield l
@@ -82,6 +87,7 @@ class Scrapper(object):
         nfo = {}
         baseimageurl = etr.find('./baseImgUrl').text
         images = {}
+        imagesyield = []
         for g in etr.findall('./Game'):
             for f, xpath in self.FIELDMAP.items():
                 e = g.find(xpath)
@@ -93,29 +99,56 @@ class Scrapper(object):
             for img in g.findall('./Images/*'):
                 if img.tag in images:
                     continue
+                if img.tag == 'boxart' and img.attrib.get('side', '') == 'back':
+                    continue
                 imgo = img.find('./original')
                 if imgo is not None:
-                    url = os.path.join(baseimageurl, imgo.text)
+                    base = imgo.text
                 else:
-                    url = os.path.join(baseimageurl, img.text)
-                images[img.tag] = self.image_fetch(v, nfodir, img.tag, url)
-        yield list(images.values())
-        etw = etree.Element('game')
+                    base = img.text
+                filename = base.replace('/', '_')
+                images[img.tag] = filename
+                url = os.path.join(baseimageurl, base)
+                imagesyield.append(
+                    self.image_fetch(v, nfodir, img.tag, url, filename))
+        yield imagesyield
+        etw = etree.Element('omniitem')
+        etree.SubElement(etw, 'title').text = nfo['title']
+        eti = etree.SubElement(etw, 'info')
         for f in self.FIELDMAP.keys():
             if f in nfo:
-                etree.SubElement(etw, f).text = nfo[f]
+                etree.SubElement(eti, f).text = nfo[f]
+        eta = etree.SubElement(etw, 'art')
+        for art, filename in images.items():
+            etree.SubElement(eta, art).text = filename
+        for missing, alts in {
+            'fanart': ['banner', 'screenshot'],
+            'icon': ['boxart', 'clearlogo', 'thumb'],
+            'thumb': ['boxart', 'clearlogo', 'icon'],
+        }.items():
+            if missing in images:
+                continue
+            for a in alts:
+                if not a in images:
+                    continue
+                etree.SubElement(eta, missing)\
+                    .text = images[a]
+                break
+        ett = etree.SubElement(etw, 'target')
+        ett.attrib['type'] = 'command'
+        ett.text = 'echo 1'
         etwstr = etree.tostring(etw,
                                 pretty_print=True)
         with io.open(nfofile, 'w') as fd:
             fd.write(etwstr.decode('utf-8'))
         v.game.nfostatus = 'present'
-        _log().info('scrapped {}'.format(nfofile))
+        _log().info('scrapped {} for {}'.format(nfofile, v.game.name))
         self.session.commit()
         raise tornado.gen.Return(None)
 
     @tornado.gen.coroutine
-    def image_fetch(self, v, nfodir, tag, url):
+    def image_fetch(self, v, nfodir, tag, url, filename):
         http = tornado.httpclient.AsyncHTTPClient()
         response = yield http.fetch(url)
-        with io.open(os.path.join(nfodir, os.path.basename(url)), 'wb') as fd:
+        with io.open(os.path.join(nfodir, filename), 'wb') as fd:
             fd.write(response.body)
