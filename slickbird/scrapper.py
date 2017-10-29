@@ -24,6 +24,8 @@ def _log():
     if not _log.logger:
         _log.logger = logging.getLogger(__name__)
     return _log.logger
+
+
 _log.logger = None
 
 
@@ -99,7 +101,8 @@ class Scrapper(object):
             for img in g.findall('./Images/*'):
                 if img.tag in images:
                     continue
-                if img.tag == 'boxart' and img.attrib.get('side', '') == 'back':
+                if img.tag == 'boxart' \
+                   and img.attrib.get('side', '') == 'back':
                     continue
                 imgo = img.find('./original')
                 if imgo is not None:
@@ -129,7 +132,7 @@ class Scrapper(object):
             if missing in images:
                 continue
             for a in alts:
-                if not a in images:
+                if a not in images:
                     continue
                 etree.SubElement(eta, missing)\
                     .text = images[a]
