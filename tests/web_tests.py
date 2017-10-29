@@ -81,13 +81,12 @@ class TestSlickbirdWeb(base.TestSlickbirdBase):
                         'Kenseiden',
                         'omniitem.nfo')
         self.assertExists(nfofile)
-        # print(open(nfofile).read())
         with open(nfofile) as nfofd:
             et = etree.parse(nfofd)
             self.assertEqual('Kenseiden',
                              et.getroot().find('title').text)
             self.assertEqual('1988',
-                             et.getroot().find('year').text)
+                             et.getroot().find('info/year').text)
 
     @gen_test
     def test_static_urls(self):
