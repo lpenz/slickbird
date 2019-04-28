@@ -62,7 +62,10 @@ class Scrapper(object):
                 continue
             lines.append(self.scrap(v, nfofile))
             if len(lines) > 5:
-                yield lines
+                try:
+                    yield lines
+                except Exception as e:
+                    _log().warn('scrapping error ({}), skip'.format(str(e)))
                 lines = []
         if len(lines) > 0:
             yield lines
@@ -73,7 +76,12 @@ class Scrapper(object):
         url = 'http://thegamesdb.net/api/GetGame.php?exactname=' + \
             quote(v.game.name)
         http = tornado.httpclient.AsyncHTTPClient()
-        response = yield http.fetch(url)
+        try:
+            response = yield http.fetch(url)
+        except Exception as e:
+            _log().warn('error scrapping {}: {}'
+                        .format(v.name, str(e)))
+            raise tornado.gen.Return(None)
         if response.code != 200:
             _log().warn('error scrapping {}: {}'
                         .format(v.game.name, str(response)))
@@ -116,7 +124,7 @@ class Scrapper(object):
                     self.image_fetch(v, nfodir, img.tag, url, filename))
         yield imagesyield
         etw = etree.Element('omniitem')
-        etree.SubElement(etw, 'title').text = nfo['title']
+        etree.SubElement(etw, 'title').text = v.game.name
         eti = etree.SubElement(etw, 'info')
         for f in self.FIELDMAP.keys():
             if f in nfo:
@@ -152,6 +160,11 @@ class Scrapper(object):
     @tornado.gen.coroutine
     def image_fetch(self, v, nfodir, tag, url, filename):
         http = tornado.httpclient.AsyncHTTPClient()
-        response = yield http.fetch(url)
+        try:
+            response = yield http.fetch(url)
+        except Exception as e:
+            _log().warn('error scrapping {} of {}: {}'
+                        .format(tag, v.name, str(e)))
+            raise tornado.gen.Return(None)
         with io.open(os.path.join(nfodir, filename), 'wb') as fd:
             fd.write(response.body)
