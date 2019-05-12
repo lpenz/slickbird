@@ -47,7 +47,7 @@ class Scrapper(object):
 
     @tornado.gen.coroutine
     def scrap_missing(self):
-        l = []
+        lines = []
         for v in self.session.query(orm.Variant):
             nfofile = filenames.nfo(self.home,
                                     v)
@@ -60,12 +60,12 @@ class Scrapper(object):
                 _log().debug('scrapper skipping {}, rom not found {}'
                              .format(v.name, romfile))
                 continue
-            l.append(self.scrap(v, nfofile))
-            if len(l) > 5:
-                yield l
-                l = []
-        if len(l) > 0:
-            yield l
+            lines.append(self.scrap(v, nfofile))
+            if len(lines) > 5:
+                yield lines
+                lines = []
+        if len(lines) > 0:
+            yield lines
 
     @tornado.gen.coroutine
     def scrap(self, v, nfofile):
